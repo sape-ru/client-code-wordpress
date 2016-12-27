@@ -1,7 +1,31 @@
 # client-code-wordpress
 
-Wordpress Plugin for sape.ru
-Плагин вордпресс для sape.ru
+## RU
 
-## Системные требования
-WordPress  4.2+
+Плагин Wordpress для sape.ru **v0.01**
+- встроенная версия клиентского кода Sape: 1.3.8
+
+### Системные требования
+WordPress  4.2+ [системные требования для разных версий](https://wordpress.org/about/requirements/)
+
+### Поддержка функций
+- арендные ссылки (обычный и блочный режим вывода)
+- контекстные ссылки
+- тизерные размещения
+- блоки rtb.sape
+- статьи
+
+## EN
+
+Wordpress plugin for sape.ru webmaster services integration
+- built in version of sape.ru's client code: 1.3.8
+
+### System requirements
+WordPress  4.2+ [requirements for different versions](https://wordpress.org/about/requirements/) 
+
+### Supported features
+- back links placement (common and block mode)
+- context back links placement
+- teaser placement
+- advertisement blocks of rtb.sape
+- articles
