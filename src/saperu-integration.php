@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: Sape.ru integration
-Plugin URI: https://sape.ru
-Description: Integrate `Sape.ru` monetization to your site in two clicks.
+Plugin URI: https://github.com/sape-ru/client-code-wordpress/releases
+Description: Plugin for Sape.ru webmaster services integration
 Version: 0.01
 Author: Sape.ru
-Author URI: http://sape.ru
+Author URI: http://www.sape.ru/
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Domain Path: /languages
