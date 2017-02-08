@@ -3,7 +3,7 @@
 Plugin Name: Sape.ru integration
 Plugin URI: https://github.com/sape-ru/client-code-wordpress/releases
 Description: Plugin for Sape.ru webmaster services integration
-Version: 0.01
+Version: 0.02
 Author: Sape.ru
 Author URI: http://www.sape.ru/
 License: GPLv2 or later
@@ -594,7 +594,7 @@ RTB блоки.<br/>
 		$SID = get_option('sape_user');
 		if($SID){
 				$dir = self::_getSapePath() . DIRECTORY_SEPARATOR . 'sape.php';
-				$data = sprintf('<?php define(\'_SAPE_USER\', \'%s\');require_once(\'%s\');$sape = new SAPE_articles();$sape->process_request();', $SID, $dir);
+				$data = sprintf('<?php define(\'_SAPE_USER\', \'%s\');require_once(\'%s\');$sape = new SAPE_articles();echo $sape->process_request();', $SID, $dir);
 				file_put_contents($_SERVER['DOCUMENT_ROOT'].'/'.$SID.'.php', $data);
 		}
 		return $args;
