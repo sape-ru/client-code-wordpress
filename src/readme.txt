@@ -1,4 +1,4 @@
-=== Plugin Name ===
+# Sape.ru integration
 Plugin Name: Sape.ru integration
 Plugin URI: https://github.com/sape-ru/client-code-wordpress/releases
 Description: Plugin for sape.ru webmaster services integration
@@ -13,21 +13,22 @@ Author: Sape.ru
 Author URI: https://www.sape.ru/
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-Domain Path: /languages
-Text Domain: sape-api
 
-== Description ==
 Плагин для автоматической установки кода системы Sape на сайт вебмастера
+
+## Description
+
+Плагин для автоматической установки кода системы [Sape](https://www.sape.ru/) на сайт вебмастера
 
 Поддержка функций
 
--арендные ссылки (обычный и блочный режим вывода)
--контекстные ссылки
--тизерные размещения
--блоки rtb.sape
--статьи
+- арендные ссылки (обычный и блочный режим вывода)
+- контекстные ссылки
+- тизерные размещения
+- блоки rtb.sape
+- статьи
 
-== Installation ==
+## Installation
 Установка кода на CMS Wordpress с помощью плагина.
 
 ! Важно ! Если Вы до этого устанавливали код системы и папки вручную, то удалите их!
@@ -69,7 +70,7 @@ Text Domain: sape-api
 
 Затем Вам необходимо произвести необходимые настройки в разделе «Статьи» - https://articles.sape.ru/wm/sites/
 
-== Screenshots ==
+## Screenshots
 
 1. screenshot-1
 2. screenshot-2
@@ -80,18 +81,20 @@ Text Domain: sape-api
 7. screenshot-7
 8. screenshot-8
 
-== Frequently Asked Questions ==
+## Frequently Asked Questions
 FAQ
 https://help.sape.ru/sape/faq/1757
 
-== Upgrade Notice ==
-v 0.01
+## Upgrade Notice
+### v 0.01
 First versiov don't have upgrade
-v 0.01
+
+### v 0.02
 Fix Sape Articles Integration
 
-== Changelog ==
-=  0.01 =
+## Changelog
+### v 0.01
 First version
-=  0.02 =
+
+### v 0.02
 Change SAPE_USER.php generation
