@@ -20,7 +20,7 @@
  */
 class SAPE_base
 {
-    protected $_version = '1.3.8';
+    protected $_version = '1.3.9';
 
     protected $_verbose = false;
 
@@ -1488,7 +1488,7 @@ class SAPE_context extends SAPE_base
                                 $this->_debug_action_append($tag_name, 'added to open_tags, stop replacement');
                             }
                         }
-                    } else {
+                    } elseif (count($open_tags) == 0) {
                         //Если нет названия тега, то считаем, что перед нами текст
                         foreach ($source_sentences as $n => $sentence) {
                             if (preg_match('/' . $sentence . '/', $part) == 1) {
@@ -2107,11 +2107,11 @@ class SAPE_articles extends SAPE_base
         switch ($this->_request_mode) {
             case 'index':
                 return '/?user=' . _SAPE_USER . '&host=' .
-                $this->_host . '&rtype=' . $this->_request_mode;
+                    $this->_host . '&rtype=' . $this->_request_mode;
                 break;
             case 'article':
                 return '/?user=' . _SAPE_USER . '&host=' .
-                $this->_host . '&rtype=' . $this->_request_mode . '&artid=' . $this->_article_id;
+                    $this->_host . '&rtype=' . $this->_request_mode . '&artid=' . $this->_article_id;
                 break;
             case 'image':
                 return $this->image_url;
