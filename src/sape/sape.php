@@ -20,7 +20,7 @@
  */
 class SAPE_base
 {
-    protected $_version = '1.3.9';
+    protected $_version = '1.4.2';
 
     protected $_verbose = false;
 
@@ -90,6 +90,17 @@ class SAPE_base
      */
     protected $_db_file = '';
 
+    /**
+     * Формат запроса. serialize|php-require
+     * @var string
+     */
+    protected $_format = 'serialize';
+
+    /**
+     * Флаг для разбиения links.db по отдельным файлам.
+     * @var bool
+     */
+    protected $_split_data_file = true;
     /**
      * Откуда будем брать uri страницы: $_SERVER['REQUEST_URI'] или getenv('REQUEST_URI')
      * @var bool
@@ -215,6 +226,14 @@ class SAPE_base
 
         if (isset($options['show_counter_separately'])) {
             $this->_show_counter_separately = (bool)$options['show_counter_separately'];
+        }
+
+        if (isset($options['format']) && in_array($options['format'], array('serialize', 'php-require'))) {
+            $this->_format = $options['format'];
+        }
+
+        if (isset($options['split_data_file'])) {
+            $this->_split_data_file = (bool)$options['split_data_file'];
         }
     }
 
@@ -437,6 +456,29 @@ class SAPE_base
     }
 
     /**
+     * Получить имя файла с мета-информацией
+     *
+     * @return string
+     */
+    protected function _get_meta_file()
+    {
+        return '';
+    }
+
+    /**
+     * Получить префикс файла в режиме split_data_file.
+     *
+     * @return string
+     */
+    protected function _get_save_filename_prefix()
+    {
+        if ($this->_split_data_file) {
+            return '.' . crc32($this->_request_uri) % 100;
+        } else {
+            return '';
+        }
+    }
+    /**
      * Получить URI к хосту диспенсера
      *
      * @return string
@@ -453,6 +495,40 @@ class SAPE_base
     {
     }
 
+    /**
+     * Расшифровывает данные
+     *
+     * @param string $data
+     *
+     * @return array|bool
+     */
+    protected function _uncode_data($data)
+    {
+        return @unserialize($data);
+    }
+
+    /**
+     * Шифрует данные для сохранения.
+     *
+     * @param $data
+     *
+     * @return string
+     */
+    protected function _code_data($data)
+    {
+        return @serialize($data);
+    }
+
+    /**
+     * Сохранение данных в файл.
+     *
+     * @param string $data
+     * @param string $filename
+     */
+    protected function _save_data($data, $filename = '')
+    {
+        $this->_write($filename, $data);
+    }
     /**
      * Загрузка данных
      */
@@ -486,7 +562,7 @@ class SAPE_base
                     ||
                     filesize($this->_db_file) == 0
                     ||
-                    @unserialize($data) == false
+                    $this->_uncode_data($data) == false
                 )
             )
         ) {
@@ -497,14 +573,16 @@ class SAPE_base
             if (strlen($this->_charset)) {
                 $path .= '&charset=' . $this->_charset;
             }
-
+            if ($this->_format) {
+                $path .= '&format=' . $this->_format;
+            }
             foreach ($this->_server_list as $server) {
                 if ($data = $this->_fetch_remote_file($server, $path)) {
                     if (substr($data, 0, 12) == 'FATAL ERROR:') {
                         $this->_raise_error($data);
                     } else {
                         // [псевдо]проверка целостности:
-                        $hash = @unserialize($data);
+                        $hash = $this->_uncode_data($data);
                         if ($hash != false) {
                             // попытаемся записать кодировку в кеш
                             $hash['__sape_charset__']      = $this->_charset;
@@ -515,12 +593,12 @@ class SAPE_base
                             $hash['__php_version__']       = phpversion();
                             $hash['__server_software__']   = $_SERVER['SERVER_SOFTWARE'];
 
-                            $data_new = @serialize($hash);
+                            $data_new = $this->_code_data($hash);
                             if ($data_new) {
                                 $data = $data_new;
                             }
 
-                            $this->_write($this->_db_file, $data);
+                            $this->_save_data($data, $this->_db_file);
                             break;
                         }
                     }
@@ -533,8 +611,17 @@ class SAPE_base
             $session            = session_name() . '=' . session_id();
             $this->_request_uri = str_replace(array('?' . $session, '&' . $session), '', $this->_request_uri);
         }
-
-        $this->_set_data(@unserialize($data));
+        $data = $this->_uncode_data($data);
+        if ($this->_split_data_file) {
+            $meta = $this->_uncode_data($this->_read($this->_get_meta_file()));
+            if (!is_array($data)) {
+                $data = array();
+            }
+            if (is_array($meta)) {
+                $data = array_merge($data, $meta);
+            }
+        }
+        $this->_set_data($data);
 
         return true;
     }
@@ -766,7 +853,7 @@ class SAPE_client extends SAPE_base
      * - Примечание: начиная с версии 1.2.2 второй аргумент $offset убран. Если
      * передавать его согласно старой сигнатуре, то он будет проигнорирован.
      *
-     * @param int   $n       Количествово ссылок, которые нужно вывести в текущем блоке
+     * @param int   $n       Количество ссылок, которые нужно вывести в текущем блоке
      * @param array $options Опции
      *
      * <code>
@@ -1022,7 +1109,7 @@ class SAPE_client extends SAPE_base
      * - Примечание: начиная с версии 1.2.2 второй аргумент $offset убран. Если
      * передавать его согласно старой сигнатуре, то он будет проигнорирован.
      *
-     * @param int   $n       Количествово ссылок, которые нужно вывести
+     * @param int   $n       Количество ссылок, которые нужно вывести
      * @param array $options Опции
      *
      * <code>
@@ -1198,9 +1285,18 @@ class SAPE_client extends SAPE_base
     protected function _get_db_file()
     {
         if ($this->_multi_site) {
-            return dirname(__FILE__) . '/' . $this->_host . '.links.db';
+            return dirname(__FILE__) . '/' . $this->_host . '.links' . $this->_get_save_filename_prefix() . '.db';
         } else {
-            return dirname(__FILE__) . '/links.db';
+            return dirname(__FILE__) . '/links' . $this->_get_save_filename_prefix() . '.db';
+        }
+    }
+
+    protected function _get_meta_file()
+    {
+        if ($this->_multi_site) {
+            return dirname(__FILE__) . '/' . $this->_host . '.links.meta.db';
+        } else {
+            return dirname(__FILE__) . '/links.meta.db';
         }
     }
 
@@ -1290,6 +1386,52 @@ class SAPE_client extends SAPE_base
             if (isset($this->_links[$var_name]) && strlen($this->_links[$var_name]) > 0) {
                 $this->$prop_name = $this->_links[$var_name];
             }
+        }
+    }
+
+    protected function _uncode_data($data)
+    {
+        if ($this->_format == 'php-require') {
+            $data1 = str_replace('<?php return ', '', $data);
+            eval('$data = ' . $data1 . ';');
+            return $data;
+        }
+
+        return @unserialize($data);
+    }
+
+    protected function _code_data($data)
+    {
+        if ($this->_format == 'php-require') {
+            return var_export($data, true);
+        }
+
+        return @serialize($data);
+    }
+
+    protected function _save_data($data, $filename = '')
+    {
+        if ($this->_split_data_file) {
+            if ($this->_multi_site) {
+                $directory = dirname(__FILE__) . '/' . $this->_host . '/';
+            } else {
+                $directory = dirname(__FILE__) . '/';
+            }
+            $hashArray = array();
+            $data = $this->_uncode_data($data);
+            foreach ($data as $url => $item) {
+                if (preg_match('/\_\_.+\_\_/mu', $url)) {
+                    $currentFile = 'links.meta.db';
+                } else {
+                    $currentFile = 'links.' . crc32($url) % 100 . '.db';
+                }
+                $hashArray[$currentFile][$url] = $item;
+            }
+            foreach ($hashArray as $file => $array) {
+                $this->_write($directory . $file, $this->_code_data($array));
+            }
+        } else {
+            parent::_save_data($data, $filename = '');
         }
     }
 }
@@ -1621,9 +1763,18 @@ class SAPE_context extends SAPE_base
     protected function _get_db_file()
     {
         if ($this->_multi_site) {
-            return dirname(__FILE__) . '/' . $this->_host . '.words.db';
+            return dirname(__FILE__) . '/' . $this->_host . '.words' . $this->_get_save_filename_prefix() . '.db';
         } else {
-            return dirname(__FILE__) . '/words.db';
+            return dirname(__FILE__) . '/words' . $this->_get_save_filename_prefix() . '.db';
+        }
+    }
+
+    protected function _get_meta_file()
+    {
+        if ($this->_multi_site) {
+            return dirname(__FILE__) . '/' . $this->_host . '.words.meta.db';
+        } else {
+            return dirname(__FILE__) . '/words.meta.db';
         }
     }
 
@@ -1642,6 +1793,52 @@ class SAPE_context extends SAPE_base
         //Есть ли обязательный вывод
         if (isset($this->_words['__sape_page_obligatory_output__'])) {
             $this->_page_obligatory_output = $this->_words['__sape_page_obligatory_output__'];
+        }
+    }
+
+    protected function _uncode_data($data)
+    {
+        if ($this->_format == 'php-require') {
+            $data1 = str_replace('<?php return ', '', $data);
+            eval('$data = ' . $data1 . ';');
+            return $data;
+        }
+
+        return @unserialize($data);
+    }
+
+    protected function _code_data($data)
+    {
+        if ($this->_format == 'php-require') {
+            return var_export($data, true);
+        }
+
+        return @serialize($data);
+    }
+
+    protected function _save_data($data, $filename = '')
+    {
+        if ($this->_split_data_file) {
+            if ($this->_multi_site) {
+                $directory = dirname(__FILE__) . '/' . $this->_host . '/';
+            } else {
+                $directory = dirname(__FILE__) . '/';
+            }
+            $hashArray = array();
+            $data = $this->_uncode_data($data);
+            foreach ($data as $url => $item) {
+                if (preg_match('/\_\_.+\_\_/mu', $url)) {
+                    $currentFile = 'words.meta.db';
+                } else {
+                    $currentFile = 'words.' . crc32($url) % 100 . '.db';
+                }
+                $hashArray[$currentFile][$url] = $item;
+            }
+            foreach ($hashArray as $file => $array) {
+                $this->_write($directory . $file, $this->_code_data($array));
+            }
+        } else {
+            parent::_save_data($data, $filename = '');
         }
     }
 }
@@ -1714,6 +1911,7 @@ class SAPE_articles extends SAPE_base
         if (!isset($this->_data['index']['announcements'][$this->_request_uri])) {
             $this->_correct_uri();
         }
+        $this->_split_data_file = false;
     }
 
     protected function _correct_uri()

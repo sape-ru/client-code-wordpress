@@ -2,15 +2,16 @@
 
 ## RU
 
-Плагин Wordpress для sape.ru **[v0.03](https://github.com/sape-ru/client-code-wordpress/blob/v0.03/plugin/saperu-integration-v0.03.zip?raw=true)**
+Плагин Wordpress для sape.ru **[v0.04](https://github.com/sape-ru/client-code-wordpress/blob/v0.04/plugin/saperu-integration-v0.04.zip?raw=true)**
 
-- встроенная версия клиентского кода Sape: 1.3.9
+- встроенная версия клиентского кода Sape: 1.4.2
 
 ### Системные требования
 WordPress  4.2+ [системные требования для разных версий](https://wordpress.org/about/requirements/)
 
 ### Поддержка функций
 - арендные ссылки (обычный и блочный режим вывода)
+- пакеты умных сквозных ссылок
 - контекстные ссылки
 - тизерные размещения
 - блоки rtb.sape
@@ -18,14 +19,15 @@ WordPress  4.2+ [системные требования для разных в�
 
 ## EN
 
-Wordpress plugin for sape.ru webmaster services integration **[v0.03](https://github.com/sape-ru/client-code-wordpress/blob/v0.03/plugin/saperu-integration-v0.03.zip?raw=true)**
-- built in version of sape.ru's client code: 1.3.9
+Wordpress plugin for sape.ru webmaster services integration **[v0.04](https://github.com/sape-ru/client-code-wordpress/blob/v0.04/plugin/saperu-integration-v0.04.zip?raw=true)**
+- built in version of sape.ru's client code: 1.4.2
 
 ### System requirements
 WordPress  4.2+ [requirements for different versions](https://wordpress.org/about/requirements/) 
 
 ### Supported features
 - back links placement (common and block mode)
+- sitewide back links packages
 - context back links placement
 - teaser placement
 - advertisement blocks of rtb.sape

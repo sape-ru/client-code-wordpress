@@ -8,7 +8,7 @@ Tags:  sape, seo, link, site, teaser, rtb
 Requires at least: 4.2
 Tested up to: 4.7
 Stable tag: trunk
-Version: 0.03
+Version: 0.04
 Author: Sape.ru
 Author URI: https://www.sape.ru/
 License: GPLv2 or later
@@ -23,6 +23,7 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Поддержка функций
 
 - арендные ссылки (обычный и блочный режим вывода)
+- пакеты умных сквозных ссылок
 - контекстные ссылки
 - тизерные размещения
 - блоки rtb.sape
@@ -95,6 +96,9 @@ Fix Sape Articles Integration
 ### v 0.03
 Fix context back links placement
 
+### v 0.04
+Add sharding for links.db file
+
 ## Changelog
 ### v 0.01
 First version
@@ -104,3 +108,6 @@ Change SAPE_USER.php generation
 
 ### v 0.03
 Change SAPE_context::replace_in_text_segment
+
+### v 0.04
+Change store mode for links.db file
