@@ -8,7 +8,7 @@ Tags:  sape, seo, link, site, teaser, rtb
 Requires at least: 4.2
 Tested up to: 4.7
 Stable tag: trunk
-Version: 0.04
+Version: 0.05
 Author: Sape.ru
 Author URI: https://www.sape.ru/
 License: GPLv2 or later
@@ -99,6 +99,9 @@ Fix context back links placement
 ### v 0.04
 Add sharding for links.db file
 
+### v 0.05
+Fix multisite mode
+
 ## Changelog
 ### v 0.01
 First version
@@ -111,3 +114,6 @@ Change SAPE_context::replace_in_text_segment
 
 ### v 0.04
 Change store mode for links.db file
+
+### v 0.05
+Fix multisite mode
