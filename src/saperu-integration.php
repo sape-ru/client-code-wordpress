@@ -3,7 +3,7 @@
 Plugin Name: Sape.ru integration
 Plugin URI: https://github.com/sape-ru/client-code-wordpress/releases
 Description: Plugin for Sape.ru webmaster services integration
-Version: 0.05
+Version: 0.06
 Author: Sape.ru
 Author URI: http://www.sape.ru/
 License: GPLv2 or later
@@ -16,6 +16,12 @@ if ( ! function_exists( 'boolval' ) ) {
 	function boolval( $val ) {
 		return (bool) $val;
 	}
+}
+
+if ( ! function_exists( 'intval' ) ) {
+    function intval( $val ) {
+        return (int) $val;
+    }
 }
 
 class Sape_API {
@@ -87,7 +93,6 @@ class Sape_API {
 		$this->_registerTizer();
 		$this->_registerRTB();
 		$this->_registerCounter();
-		$this->_registerHeadScript();
 	}
 
 	protected function _registerLinks()
@@ -164,22 +169,12 @@ class Sape_API {
 		if ( get_option( 'sape_part_is_rtb' ) && _SAPE_USER !== '' ) {
 			add_action( 'widgets_init', function () {register_widget( 'Sape_API_Widget_RTB' );}, 1 );
 		}
-
 	}
 
 	protected function _registerCounter()
 	{
 		if ( _SAPE_USER !== '' ) {
 			add_action( 'wp_footer', array( &$this, '_sape_return_counter' ), 1 );
-		}
-	}
-
-	protected function _registerHeadScript()
-	{
-		if(_SAPE_USER !== ''){
-			if(get_option( 'sape_part_is_rtb' ) || get_option( 'sape_part_is_tizer' )){
-				add_action( 'wp_head', array( &$this, 'render_remained_tizer' ), 1 );
-			}
 		}
 	}
 
@@ -195,12 +190,6 @@ class Sape_API {
 		//}
 	}
 
-	public function render_remained_tizer() {
-		//if ( $this->_getSapeClient()->_teasers_page > 0 ) {
-			echo do_shortcode( '[sape_tizer]' );
-		//}
-	}
-
 	public function init() {
 		// admin panel
 		add_action( 'admin_init', array( &$this, 'admin_init' ), 1 ); // init settings
@@ -212,7 +201,23 @@ class Sape_API {
 		if ( is_front_page() ) {
 			add_action( 'wp_footer', array( &$this, '_sape_return_links' ), 1 );
 		}
+
+		// deny edit and delete sape article posts
+        add_action('user_has_cap', array( &$this, 'deny_edit_and_delete_posts' ), 10, 3);
 	}
+
+    function deny_edit_and_delete_posts($allcaps, $cap, $args) {
+        if (in_array($args[0], array('edit_post', 'delete_post'))) {
+            $postId = (int)$args[2];
+            if ((int)$postId > 0) {
+                $sape_articles_post_ids = $this->_getSapeArticles()->wp_get_post_ids();
+                if (in_array($postId, $sape_articles_post_ids)) {
+                    $allcaps[$cap[0]] = false;
+                }
+            }
+        }
+        return $allcaps;
+    }
 
 	public static function activation_hook() {
 		// init options
@@ -284,7 +289,14 @@ class Sape_API {
 		return $this->_getSapeClient()->return_teasers_block( (int)$ID );
 	}
 	public function _sape_return_counter() {
-		return $this->_getSapeClient()->return_counter();
+	    $counterHtml = '';
+	    if (get_option('sape_part_is_articles')) {
+            $counterHtml = $this->_getSapeArticles()->return_counter();
+        }
+        if ($counterHtml == '') {
+            $counterHtml = $this->_getSapeClient()->return_counter();
+        }
+        echo $counterHtml;
 	}
 
 	private function _getSapeContext() {
@@ -310,9 +322,86 @@ class Sape_API {
 	public function _sape_return_announcements( $n ) {
 		return $this->_getSapeArticles()->return_announcements( $n );
 	}
-	public function _sape_return_process_request() {
-		return $this->_getSapeArticles()->process_request();
-	}
+
+	public function _sape_wp_prosess() {
+	    $newArticles     = array();
+        $updateArticles  = array();
+        $deleteArticles  = array();
+
+        $uploadDirInfo = wp_upload_dir();
+
+        $this->_getSapeArticles()->wp_prosess($newArticles, $updateArticles, $deleteArticles, $uploadDirInfo['basedir']);
+
+	    // Блок обработки новых статей
+	    if (isset($updateArticles) && is_array($updateArticles) && count($newArticles) > 0) {
+            $addedPosts = array();
+            foreach ($newArticles as $articleId => $articleInfo) {
+                // Добавляем служебный тег
+                $args = array(
+                    'sape_article_id'  => $articleId,
+                    'post_title'       => $articleInfo['title'],
+                    'post_content'     => $articleInfo['body'],
+                    'post_status'      => 'publish'
+                );
+
+                // Создаем пост в WordPress
+                $postInfo = $this->addOrUpdatePost($args);
+                $addedPosts[$articleId] = $postInfo;
+
+                // Прописываем meta-теги
+                add_post_meta($postInfo['wp_post_id'], 'sseo_meta_title', $articleInfo['title']);
+                add_post_meta($postInfo['wp_post_id'], 'sseo_meta_keywords', $articleInfo['keywords']);
+                add_post_meta($postInfo['wp_post_id'], 'sseo_meta_description', $articleInfo['description']);
+	        }
+
+            // Сохраняем изменения в локальный файл
+            $this->_getSapeArticles()->wp_save_local_db($addedPosts, 'add');
+
+            // Пушим в диспенсер УРЛы
+            $this->_getSapeArticles()->wp_push_posts($addedPosts, $uploadDirInfo['baseurl']);
+        }
+
+        // Блок обработки существующих статей статей
+        if (isset($updateArticles) && is_array($updateArticles) && count($updateArticles) > 0) {
+            $updatedPosts = array();
+            foreach ($updateArticles as $articleId => $articleInfo) {
+                $args = array(
+                    'sape_article_id'  => $articleId,
+                    'post_id'          => $articleInfo['wp_post_id'],
+                    'post_title'       => $articleInfo['title'],
+                    'post_content'     => $articleInfo['body'],
+                    'post_status'      => 'publish'
+                );
+
+                // Обновляем пост в WordPress
+                $postInfo = $this->addOrUpdatePost($args);
+                $updatedPosts[$articleId] = $postInfo;
+
+                // Прописываем meta-теги
+                update_post_meta($postInfo['wp_post_id'], 'sseo_meta_title', $articleInfo['title']);
+                update_post_meta($postInfo['wp_post_id'], 'sseo_meta_keywords', $articleInfo['keywords']);
+                update_post_meta($postInfo['wp_post_id'], 'sseo_meta_description', $articleInfo['description']);
+
+                // Сохраняем изменения в локальный файл
+                $this->_getSapeArticles()->wp_save_local_db($updatedPosts, 'update');
+            }
+        }
+
+        // Блок обработки удаления статей
+        if (isset($deleteArticles) && is_array($deleteArticles) && count($deleteArticles) > 0) {
+            $deletedPosts = array();
+            foreach ($deleteArticles as $articleId => $articleInfo) {
+                if (isset($articleInfo['wp_post_id']) && (int)$articleInfo['wp_post_id'] > 0) {
+                    // Удаляем пост в WordPress
+                    $this->deletePost($articleInfo['wp_post_id']);
+                    $deletedPosts[$articleId] = array('wp_post_id' => (int)$articleInfo['wp_post_id']);
+                }
+            }
+
+            // Сохраняем изменения в локальный файл
+            $this->_getSapeArticles()->wp_save_local_db($deletedPosts, 'delete');
+        }
+    }
 
 	public function shortcode_sape( $atts, $content = null ) {
 		$atts = shortcode_atts( array(
@@ -354,6 +443,9 @@ class Sape_API {
 			array(
 			)
 		);
+
+		// Запускаем обработку размещения статей
+		$this->_sape_wp_prosess();
 
 		return ! empty( $text ) ? $text : $content;
 	}
@@ -422,7 +514,11 @@ class Sape_API {
 		register_setting( 'sape_base', 'sape_user', 'trim' );
 		register_setting( 'sape_base', 'sape_part_is_client', 'boolval' );
 		register_setting( 'sape_base', 'sape_part_is_context', 'boolval' );
-		register_setting( 'sape_base', 'sape_part_is_articles', array('type'=>'boolval' , 'sanitize_callback' => array( &$this, 'change_field_article')) );
+		register_setting( 'sape_base', 'sape_part_is_articles', 'boolval' );
+
+		register_setting( 'sape_base', 'sape_part_is_articles_post_author', array('type'=>'intval'));
+        register_setting( 'sape_base', 'sape_part_is_articles_post_category', array('type'=>'intval'));
+
 		register_setting( 'sape_base', 'sape_part_is_tizer', 'boolval' );
 		register_setting( 'sape_base', 'sape_part_is_tizer_image', array('type'=>'intval', 'sanitize_callback' => array( &$this, 'change_field_tizer_image')) );
 		register_setting( 'sape_base', 'sape_part_is_rtb', 'boolval' );
@@ -506,26 +602,46 @@ class Sape_API {
 			) // args
 		);
 
-		add_settings_field(
-			'sape_part_is_articles', // id
-			'Размещение статей', // title
-			array( &$this, 'render_settings_field' ), // callback
-			'page_sape', // page
-			'section__sape_parts', // section
-			array(
-				'label_for' => 'sape_part_is_articles',
-				'type'      => 'checkbox',
-				'descr'     => '
-Текстовые и блочные ссылки.<br/>
-После активации будет доступен как <a target="_blank" href="' . admin_url( 'widgets.php' ) . '">виджет</a> для вывода ссылок, так и шорткод:<br/>
-<code>[sape]</code> -- вывод всех ссылок в формате текста<br/>
-<code>[sape count=2]</code> -- вывод лишь двух ссылок<br/>
-<code>[sape count=2 block=1]</code> -- вывод ссылок в формате блока<br/>
-<code>[sape count=2 block=1 orientation=1]</code> -- вывод ссылок в формате блока горизонтально<br/>
-<code>[sape]код другой биржи, html, js[/sape]</code> -- вывод альтернативного текста при отсутствии ссылок.<br/>
-Для вывода внутри темы (шаблона) используйте следующий код: <code>' . esc_attr( '<?php echo do_shortcode(\'[sape]\') ?>' ) . '</code>',
-			) // args
-		);
+        add_settings_field(
+            'sape_part_is_articles', // id
+            'Размещение статей', // title
+            array( &$this, 'render_settings_field' ), // callback
+            'page_sape', // page
+            'section__sape_parts', // section
+            array(
+                'label_for' => 'sape_part_is_articles',
+                'type'      => 'checkbox',
+                'descr'     => 'Вывод статей Sape с анонсами на сайте.',
+            ) // args
+        );
+
+        add_settings_field(
+            'sape_part_is_articles_post_author', // id
+            '', // title
+            array( &$this, 'render_settings_field' ), // callback
+            'page_sape', // page
+            'section__sape_parts', // section
+            array(
+                'label_for' => 'sape_part_is_articles_post_author',
+                'type'      => 'select',
+                'descr'     => 'Пользователь, от имени которого будут создаваться статьи',
+                'options' => $this-> _getArticleWpUsersOptions()
+            ) // args
+        );
+
+        add_settings_field(
+            'sape_part_is_articles_post_category', // id
+            '', // title
+            array( &$this, 'render_settings_field' ), // callback
+            'page_sape', // page
+            'section__sape_parts', // section
+            array(
+                'label_for' => 'sape_part_is_articles_post_category',
+                'type'      => 'select',
+                'descr'     => 'Рубрика, в которой будут создаваться статьи',
+                'options' => $this-> _getArticleWpСategoryOptions()
+            ) // args
+        );
 
 		add_settings_field(
 			'sape_part_is_tizer', // id
@@ -578,10 +694,11 @@ RTB блоки.<br/>
 
 	function change_field_tizer_image($args)
 	{
-		$SID = get_option('sape_user');
-		if($SID){
-			$file_name = $this->_getTizerImageOptions($args);
-			if($file_name){
+	    $SID = get_option('sape_user');
+
+	    if($SID) {
+	        $file_name = $this->_getTizerImageOptions($args);
+            if(isset($file_name) && !is_array($file_name) && $file_name <> '') {
 				$dir = self::_getSapePath() . DIRECTORY_SEPARATOR . 'sape.php';
 				$data = sprintf('<?php define(\'_SAPE_USER\', \'%s\');require_once(\'%s\');$sape = new SAPE_client(array(\'charset\' => \'UTF-8\'));$sape->show_image();', $SID, $dir);
 				file_put_contents($_SERVER['DOCUMENT_ROOT'].'/'.$file_name, $data);
@@ -589,24 +706,104 @@ RTB блоки.<br/>
 		}
 		return $args;
 	}
-	function change_field_article($args)
-	{
-		$SID = get_option('sape_user');
-		if($SID){
-				$dir = self::_getSapePath() . DIRECTORY_SEPARATOR . 'sape.php';
-				$data = sprintf('<?php define(\'_SAPE_USER\', \'%s\');require_once(\'%s\');$sape = new SAPE_articles();echo $sape->process_request();', $SID, $dir);
-				file_put_contents($_SERVER['DOCUMENT_ROOT'].'/'.$SID.'.php', $data);
-		}
-		return $args;
-	}
+
+    function addOrUpdatePost($args)
+    {
+        // Создаем массив данных новой записи
+        $post_data = array(
+            'post_title'    => wp_strip_all_tags( $args['post_title'] ),
+            'post_content'  => $args['post_content'],
+            'post_status'   => $args['post_status'],
+            'post_author'   => get_option('sape_part_is_articles_post_author'),
+            'post_category' => array(get_option('sape_part_is_articles_post_category')),
+            'post_name'     => (int)$args['sape_article_id']
+        );
+
+        if (isset($args['post_id']) && (int)$args['post_id'] > 0) {
+            $post_data['ID'] = (int)$args['post_id'];
+        }
+
+        // Вставляем или обновляем запись в БД
+        $post_id = wp_insert_post( $post_data );
+
+        // Получаем URL поста
+        $post_url = get_permalink( $post_id );
+
+        $result = array(
+            'wp_post_id'          => $post_id,
+            'wp_post_url'         => $post_url,
+            'wp_post_title'       => wp_strip_all_tags( $args['post_title'] ),
+            'wp_post_content'     => $args['post_content'],
+            'wp_post_keywords'    => $args['post_keywords'],
+            'wp_post_description' => $args['post_description'],
+            'wp_post_status'      => $args['post_status']
+        );
+
+        return $result;
+    }
+
+    function deletePost($post_id)
+    {
+        return wp_delete_post( $post_id );
+    }
+
 	protected function _getTizerImageOptions($id = null)
 	{
-		if($id){
+		if(isset($id)) {
 			$data = $this->_getTizerImageOptions();
-			return isset($data[$id])?$data[$id]:null;
+			return isset($data[$id]) ? $data[$id] : null;
 		}
 		return array('img.php', 'image.php', 'photo.php', 'wp-img.php', 'wp-image.php', 'wp-photo.php');
 	}
+
+    protected function _getArticleWpUsersOptions($id = null)
+    {
+        if($id){
+            $data = $this->_getArticleWpUsersOptions();
+            return isset($data[$id]) ? $data[$id] : null;
+        }
+
+        $wpUsers = get_users();
+        $result = array();
+
+        /* @var WP_User $wpUser */
+        foreach ($wpUsers as $wpUser) {
+            $result[$wpUser->ID] = $wpUser->display_name;
+        }
+
+        return $result;
+    }
+
+    protected function _getArticleWpСategoryOptions($id = null)
+    {
+        if($id){
+            $data = $this->_getArticleWpСategoryOptions();
+            return isset($data[$id]) ? $data[$id] : null;
+        }
+
+        $wpСategories = get_categories( array(
+            'taxonomy'     => 'category',
+            'type'         => 'post',
+            'child_of'     => 0,
+            'parent'       => '',
+            'orderby'      => 'name',
+            'order'        => 'ASC',
+            'hide_empty'   => 0,
+            'hierarchical' => 1,
+            'exclude'      => '',
+            'include'      => '',
+            'number'       => 0,
+            'pad_counts'   => false
+        ) );
+
+        $result = array();
+
+        foreach ($wpСategories as $wpСategory) {
+            $result[$wpСategory->term_id] = $wpСategory->cat_name;
+        }
+
+        return $result;
+    }
 
 	public function render_settings_field( $atts ) {
 		$id    = $atts['label_for'];

@@ -8,7 +8,7 @@ Tags:  sape, seo, link, site, teaser, rtb
 Requires at least: 4.2
 Tested up to: 4.7
 Stable tag: trunk
-Version: 0.05
+Version: 0.06
 Author: Sape.ru
 Author URI: https://www.sape.ru/
 License: GPLv2 or later
@@ -102,6 +102,9 @@ Add sharding for links.db file
 ### v 0.05
 Fix multisite mode
 
+### v 0.06
+SapeArticles: Work without URL-template and .htaccess config
+
 ## Changelog
 ### v 0.01
 First version
@@ -117,3 +120,6 @@ Change store mode for links.db file
 
 ### v 0.05
 Fix multisite mode
+
+### v 0.06
+SapeArticles: Work without URL-template and .htaccess config

@@ -20,7 +20,7 @@
  */
 class SAPE_base
 {
-    protected $_version = '1.4.3';
+    protected $_version = '1.4.5';
 
     protected $_verbose = false;
 
@@ -538,7 +538,7 @@ class SAPE_base
 
         if (!is_file($this->_db_file)) {
             // Пытаемся создать файл.
-            if (@touch($this->_db_file)) {
+            if (@touch($this->_db_file, time() - $this->_cache_lifetime - 1)) {
                 @chmod($this->_db_file, 0666); // Права доступа
             } else {
                 return $this->_raise_error('Нет файла ' . $this->_db_file . '. Создать не удалось. Выставите права 777 на папку.');
@@ -559,10 +559,6 @@ class SAPE_base
                 &&
                 (
                     filemtime($this->_db_file) < (time() - $this->_cache_lifetime)
-                    ||
-                    filesize($this->_db_file) == 0
-                    ||
-                    $this->_uncode_data($data) == false
                 )
             )
         ) {
@@ -716,9 +712,18 @@ class SAPE_client extends SAPE_base
     protected $_return_links_calls;
     protected $_teasers_css_showed = false;
 
+    /**
+     * @var SAPE_rtb
+     */
+    protected $_teasers_rtb_proxy  = null;
+
     public function __construct($options = null)
     {
         parent::__construct($options);
+
+        if (isset($options['rtb']) && !empty($options['rtb']) && $options['rtb'] instanceof SAPE_rtb) {
+            $this->_teasers_rtb_proxy = $options['rtb'];
+        }
 
         $this->_load_data();
     }
@@ -1337,7 +1342,11 @@ class SAPE_client extends SAPE_base
 
         //Есть ли обязательный вывод
         if (isset($this->_links['__sape_page_obligatory_output__'])) {
-            $this->_page_obligatory_output = $this->_links['__sape_page_obligatory_output__'];
+            if ($this->_teasers_rtb_proxy !== null) {
+                $this->_page_obligatory_output = $this->_teasers_rtb_proxy->return_script();
+            } else {
+                $this->_page_obligatory_output = $this->_links['__sape_page_obligatory_output__'];
+            }
         }
 
         // Есть ли флаг блочных ссылок
@@ -1421,11 +1430,9 @@ class SAPE_client extends SAPE_base
                 } else {
                     $currentFile = 'links.' . crc32($url) % 100 . '.db';
                 }
-
                 if ($this->_multi_site) {
                     $currentFile = $this->_host . '.' . $currentFile;
                 }
-
                 $hashArray[$currentFile][$url] = $item;
             }
             foreach ($hashArray as $file => $array) {
@@ -1977,6 +1984,150 @@ class SAPE_articles extends SAPE_base
         return $output;
     }
 
+    /**
+     * @param $command
+     */
+    public function wp_prosess(&$newArticles, &$updateArticles, &$deletedArticles, $upload_base_dir) {
+        // Инициализация файла работы с WordPress
+        $this->_wp_init();
+
+        // Список статей на диспенсере
+        $dispenserArticles = array();
+        if (isset($this->_data['index']['articles'])) {
+            foreach ($this->_data['index']['articles'] as $article) {
+                $dispenserArticles[(int)$article['id']] = array(
+                    'id'           => (int)$article['id'],
+                    'date_updated' => (int)$article['date_updated']
+                );
+            }
+        }
+
+        // Список статей из WordPress-а
+        $wpArticles = $this->_data['wp'];
+
+        $dispenserArticleIds = array_keys($dispenserArticles);
+        $wpArticleIds        = array_keys($wpArticles);
+        $unionArticlesIds    = array_merge($dispenserArticleIds, $wpArticleIds);
+
+        foreach ($unionArticlesIds as $articleId) {
+            // Новые статьи
+            if (in_array($articleId, $dispenserArticleIds) && !in_array($articleId, $wpArticleIds)) {
+                $this->_load_wp_article($dispenserArticles[$articleId]);
+
+                $newArticles[$articleId] = array(
+                    'id'          => (int)$articleId,
+                    'title'       => $this->_data['article']['title'],
+                    'keywords'    => $this->_data['article']['keywords'],
+                    'description' => $this->_data['article']['description'],
+                    'body'        => $this->_data['article']['body'],
+                );
+            }
+
+            // Существующие статьи
+            if (in_array($articleId, $dispenserArticleIds) && in_array($articleId, $wpArticleIds)) {
+                $this->_load_wp_article($dispenserArticles[$articleId]);
+
+                if (
+                    $this->_data['article']['title'] != $this->_data['wp'][$articleId]['wp_post_title']
+                    ||
+                    $this->_data['article']['body'] != $this->_data['wp'][$articleId]['wp_post_content']
+                ) {
+                    $updateArticles[$articleId] = array(
+                        'id'          => (int)$articleId,
+                        'wp_post_id'  => $this->_data['wp'][$articleId]['wp_post_id'],
+                        'title'       => $this->_data['article']['title'],
+                        'keywords'    => $this->_data['article']['keywords'],
+                        'description' => $this->_data['article']['description'],
+                        'body'        => $this->_data['article']['body'],
+                    );
+                }
+            }
+
+            // Снятые статьи
+            if (!in_array($articleId, $dispenserArticleIds) && in_array($articleId, $wpArticleIds)) {
+                $deletedArticles[$articleId] = array(
+                    'id'         => (int)$articleId,
+                    'wp_post_id' => (int)$wpArticles[$articleId]['wp_post_id']
+                );
+            }
+        }
+
+        // Работа с изображениями
+        if (isset($this->_data['index']['images'])) {
+            foreach ($this->_data['index']['images'] as $image_uri => $image_meta) {
+                $this->_load_wp_image($image_uri, $image_meta['article_id'], $upload_base_dir);
+            }
+        }
+    }
+
+    public function wp_get_post_ids() {
+        $wpPostIds = array();
+
+        // Инициализация файла работы с WordPress
+        $this->_wp_init();
+
+        // Список статей из WordPress-а
+        $wpArticles = $this->_data['wp'];
+
+        foreach ($wpArticles as $wpArticle) {
+            $wpPostIds[] = (int)$wpArticle['wp_post_id'];
+        }
+
+        return $wpPostIds;
+    }
+
+    public function wp_save_local_db($posts, $mode = 'add') {
+        if (isset($posts) && is_array($posts)) {
+            $this->_save_file_name = 'articles.wp.db';
+            $this->_db_file = dirname(__FILE__) . '/' . $this->_host . '.' . $this->_save_file_name;
+
+            foreach ($posts as $articleId => $post) {
+                if (in_array($mode, array('add', 'update'))) {
+                    $this->_data['wp'][$articleId] = $post;
+                }
+                if ($mode == 'delete') {
+                    unset($this->_data['wp'][$articleId]);
+                }
+            }
+
+            $this->_save_data(serialize($this->_data['wp']), $this->_db_file);
+        }
+    }
+
+    public function wp_push_posts($posts, $upload_base_url) {
+        $this->_set_request_mode('article');
+
+        if (isset($posts) && is_array($posts)) {
+            foreach ($posts as $articleId => $post) {
+                $this->_article_id = (int)$articleId;
+                $path              = $this->_get_dispenser_path();
+                $path_postfix      = '&set_article_url=' . urlencode($post['wp_post_url']);
+                $path_postfix     .= '&set_article_image_url=' . urlencode($upload_base_url . '/' . (int)$articleId . '/');
+
+                foreach ($this->_server_list as $server) {
+                    if ($data = $this->_fetch_remote_file($server, $path . $path_postfix)) {
+                        if (substr($data, 0, 12) != 'FATAL ERROR:') {
+                            break;
+                        }
+                        $this->_raise_error($data);
+                    }
+                }
+            }
+
+            // Обновляем индекс
+            $this->_save_file_name = 'articles.db';
+            unlink($this->_get_db_file());
+            $this->_get_index();
+        }
+    }
+
+    protected function _wp_init()
+    {
+        $this->_set_request_mode('wp');
+        $this->_save_file_name = 'articles.wp.db';
+        $this->_load_wp_data();
+    }
+
     protected function _get_index()
     {
         $this->_set_request_mode('index');
@@ -1990,7 +2141,6 @@ class SAPE_articles extends SAPE_base
      */
     public function process_request()
     {
-
         if (!empty($this->_data['index']) and isset($this->_data['index']['articles'][$this->_request_uri])) {
             return $this->_return_article();
         } elseif (!empty($this->_data['index']) and isset($this->_data['index']['images'][$this->_request_uri])) {
@@ -2035,6 +2185,25 @@ class SAPE_articles extends SAPE_base
         return $this->_return_html($article_html);
     }
 
+    protected function _load_wp_article($article_meta)
+    {
+        $this->_set_request_mode('article');
+
+        //Загружаем статью
+        $this->_save_file_name = (int)$article_meta['id'] . '.article.db';
+        $this->_article_id     = (int)$article_meta['id'];
+        $this->_load_data();
+        if (false == $this->_show_counter_separately) {
+            $this->_data[$this->_request_mode]['body'] = $this->_return_obligatory_page_content() . $this->_data[$this->_request_mode]['body'];
+        }
+
+        //Обновим если устарела
+        if (!isset($this->_data['article']['date_updated']) OR $this->_data['article']['date_updated'] < $article_meta['date_updated']) {
+            unlink($this->_get_db_file());
+            $this->_load_data();
+        }
+    }
+
     protected function _prepare_path_to_images()
     {
         $this->_images_path = dirname(__FILE__) . '/images/';
@@ -2053,6 +2222,22 @@ class SAPE_articles extends SAPE_base
         return true;
     }
 
+    protected function _prepare_wp_path_to_images($article_id, $upload_base_dir)
+    {
+        $this->_images_path = $upload_base_dir . '/' . (int)$article_id . '/';
+
+        if (!is_dir($this->_images_path)) {
+            // Пытаемся создать папку.
+            if (@mkdir($this->_images_path)) {
+                @chmod($this->_images_path, 0777);    // Права доступа
+            } else {
+                return $this->_raise_error('Нет папки ' . $this->_images_path . '. Создать не удалось. Выставите права 777 на папку.');
+            }
+        }
+
+        return true;
+    }
+
     protected function _return_image()
     {
         $this->_set_request_mode('image');
@@ -2062,7 +2247,7 @@ class SAPE_articles extends SAPE_base
         $image_meta = $this->_data['index']['images'][$this->_request_uri];
         $image_path = $this->_images_path . $image_meta['id'] . '.' . $image_meta['ext'];
 
-        if (!is_file($image_path) or filemtime($image_path) > $image_meta['date_updated']) {
+        if (!is_file($image_path) or filemtime($image_path) != $image_meta['date_updated']) {
             // Чтобы не повесить площадку клиента и чтобы не было одновременных запросов
             @touch($image_path, $image_meta['date_updated']);
 
@@ -2081,6 +2266,7 @@ class SAPE_articles extends SAPE_base
                     }
                 }
             }
+            @touch($image_path, $image_meta['date_updated']);
         }
 
         unset($data);
@@ -2094,6 +2280,39 @@ class SAPE_articles extends SAPE_base
         }
 
         return $this->_read($image_path);
+    }
+
+    protected function _load_wp_image($image_uri, $article_id, $upload_base_dir)
+    {
+        $this->_request_uri = $image_uri;
+        $this->_set_request_mode('image');
+
+        $this->_prepare_wp_path_to_images($article_id, $upload_base_dir);
+
+        //Проверим загружена ли картинка
+        $image_meta = $this->_data['index']['images'][$this->_request_uri];
+        $image_path = $this->_images_path . $image_meta['filename'];
+
+        if (!is_file($image_path) || filemtime($image_path) != $image_meta['date_updated']) {
+            // Чтобы не повесить площадку клиента и чтобы не было одновременных запросов
+            @touch($image_path, $image_meta['date_updated']);
+
+            $path = $image_meta['dispenser_path'];
+            foreach ($this->_server_list as $server) {
+                if ($data = $this->_fetch_remote_file($server, $path)) {
+                    if (substr($data, 0, 12) == 'FATAL ERROR:') {
+                        $this->_raise_error($data);
+                    } else {
+                        // [псевдо]проверка целостности:
+                        if (strlen($data) > 0) {
+                            $this->_write($image_path, $data);
+                            break;
+                        }
+                    }
+                }
+            }
+            @touch($image_path, $image_meta['date_updated']);
+        }
     }
 
     protected function _fetch_article($template)
@@ -2340,8 +2559,382 @@ class SAPE_articles extends SAPE_base
         }
     }
 
+    /**
+     * Загрузка данных WordPress
+     */
+    protected function _load_wp_data()
+    {
+        $this->_db_file = dirname(__FILE__) . '/' . $this->_host . '.' . $this->_save_file_name;
+
+        if (!is_file($this->_db_file)) {
+            // Пытаемся создать файл.
+            if (@touch($this->_db_file)) {
+                @chmod($this->_db_file, 0666); // Права доступа
+            } else {
+                return $this->_raise_error('Нет файла ' . $this->_db_file . '. Создать не удалось. Выставите права 777 на папку.');
+            }
+            $this->_write($this->_db_file, 'a:0:{}');
+        }
+
+        if (!is_writable($this->_db_file)) {
+            return $this->_raise_error('Нет доступа на запись к файлу: ' . $this->_db_file . '! Выставите права 777 на папку.');
+        }
+
+        @clearstatcache();
+
+        $data = $this->_read($this->_db_file);
+        $data = $this->_uncode_data($data);
+
+        $this->_set_data($data);
+
+        return true;
+    }
+
     protected function _get_meta_file()
     {
         return $this->_get_db_file();
+    }
+}
+
+/**
+ * Класс для работы клиентским кодом rtb.sape.ru
+ */
+class SAPE_rtb extends SAPE_base
+{
+
+    protected $_site_id = null;
+
+    protected $_ucode_id = null;
+
+    protected $_ucode_url = null;
+
+    protected $_ucode_filename = null;
+
+    protected $_ucode_places = array();
+
+    protected $_base_dir = null;
+
+    protected $_base_url = '/';
+
+    protected $_proxy_url = null;
+
+    protected $_data = null;
+
+    protected $_filename = null;
+
+    protected $_server_list = array('rtb.sape.ru');
+
+    protected $_format = false;
+
+    protected $_split_data_file = false;
+
+    protected $_return_script_shown = false;
+
+    /**
+     * SAPE_rtb constructor.
+     *
+     * @param array $options
+     */
+    public function __construct($options = null)
+    {
+        if (isset($options['host'])) {
+            $this->_host = $options['host'];
+        } else {
+            $this->_host = $_SERVER['HTTP_HOST'];
+            $this->_host = preg_replace('/^http(?:s)?:\/\//', '', $this->_host);
+            $this->_host = preg_replace('/^www\./', '', $this->_host);
+        }
+
+        if (isset($options['ucode_id'])) {
+            $this->_ucode_id = $options['ucode_id'];
+            if (isset($options['ucode_filename'])) {
+                $this->_filename = preg_replace('~\.js$~', '', trim($options['ucode_filename'])) . '.js';
+            } else {
+                $this->_filename = $this->_ucode_id . '.js';
+            }
+            if (isset($options['filename'])) {
+                $this->_ucode_filename = preg_replace('~\.js$~', '', trim($options['filename'])) . '.js';
+            }
+            if (isset($options['places'])) {
+                $this->_ucode_places = $options['places'];
+            }
+        } elseif (isset($options['site_id'])) {
+            $this->_site_id = $options['site_id'];
+            if (isset($options['filename']) && $options['filename']) {
+                $this->_filename = preg_replace('~\.js$~', '', trim($options['filename'])) . '.js';
+            } else {
+                $this->_filename = $this->_site_id . '.js';
+            }
+        }
+
+        if ($this->_filename !== null) {
+            if (isset($options['base_dir'])) {
+                $this->_base_dir = preg_replace('~/$~', '', trim($options['base_dir'])) . '/';
+            } else {
+                $this->_base_dir = dirname(dirname(__FILE__)) . '/';
+            }
+
+            if (isset($options['base_url'])) {
+                $this->_base_url = preg_replace('~/$~', '', trim($options['base_url'])) . '/';
+            }
+
+            if (isset($options['proxy_url'])) {
+                $this->_proxy_url = strpos($options['proxy_url'], '?') === false ? ($options['proxy_url'] . '?') : (preg_replace('~&^~', '', '&' . $options['proxy_url'] . '&'));
+            } else {
+                $this->_proxy_url = '/proxy.php?';
+            }
+
+            $this->_load_data();
+        } else {
+            $this->_load_proxed_url();
+        }
+    }
+
+    /**
+     * Получить имя файла с даными
+     *
+     * @return string
+     */
+    protected function _get_db_file()
+    {
+        if ($this->_ucode_id) {
+            return dirname(__FILE__) . '/rtb.ucode.' . $this->_ucode_id . '.' . $this->_host . '.db';
+        }
+
+        return dirname(__FILE__) . '/rtb.site.' . $this->_site_id . '.' . $this->_host . '.db';
+    }
+
+    /**
+     * Получить URI к хосту диспенсера
+     *
+     * @return string
+     */
+    protected function _get_dispenser_path()
+    {
+        if ($this->_ucode_id) {
+            return '/dispenser/user/' . _SAPE_USER . '/' . $this->_ucode_id;
+        }
+
+        return '/dispenser/site/' . _SAPE_USER . '/' . $this->_site_id;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function _load_proxed_url()
+    {
+        $db_file = dirname(__FILE__) . '/rtb.proxy.db';
+        if (!is_file($db_file)) {
+            if (@touch($db_file)) {
+                @chmod($db_file, 0666); // Права доступа
+            } else {
+                return $this->_raise_error('Нет файла ' . $db_file . '. Создать не удалось. Выставите права 777 на папку.');
+            }
+        }
+        if (!is_writable($db_file)) {
+            return $this->_raise_error('Нет доступа на запись к файлу: ' . $db_file . '! Выставите права 777 на папку.');
+        }
+
+        @clearstatcache();
+
+        $data = $this->_read($db_file);
+        if ($data !== '') {
+            $this->_data['__proxy__'] = $this->_uncode_data($data);
+        }
+
+        return true;
+    }
+
+    /**
+     * Сохранение данных в файл.
+     *
+     * @param string $data
+     * @param string $filename
+     */
+    protected function _save_data($data, $filename = '')
+    {
+        $hash = $this->_uncode_data($data);
+        if (isset($hash['__code__']) && !empty($hash['__code__'])) {
+            $this->_save_data_js($hash);
+        }
+
+        parent::_save_data($data, $filename);
+    }
+
+    /**
+     * Сохранение данных в js файл.
+     *
+     * @param array $data
+     */
+    protected function _save_data_js($data)
+    {
+        $code = null;
+        if ($this->_ucode_id) {
+            if (!empty($data['__sites__'])) {
+                $key = crc32($this->_host) . crc32(strrev($this->_host));
+                if (isset($data['__sites__'][$key])) {
+                    $script = new SAPE_rtb(array('site_id' => $data['__sites__'][$key], 'base_dir' => $this->_base_dir, 'filename' => $this->_ucode_filename));
+                    $script = $script->return_script_url();
+                    if (!empty($script)) {
+                        $code = '(function(w,n,m){w[n]=' . json_encode($this->_proxy_url) . ';w[m]=' . json_encode($script) . ';})(window,"srtb_proxy","srtb_proxy_site");' . $data['__code__'];
+                    }
+                }
+            }
+        }
+
+        if ($code === null) {
+            $code = '(function(w,n){w[n]=' . json_encode($this->_proxy_url) . ';})(window,"srtb_proxy");' . $data['__code__'];
+        }
+
+        $this->_write($this->_base_dir . $this->_filename, $code);
+        $this->_write(dirname(__FILE__) . '/rtb.proxy.db', $this->_code_data($data['__proxy__']));
+    }
+
+    /**
+     * Сохранить данные, полученные из файла, в объекте
+     *
+     * @param array $data
+     */
+    protected function _set_data($data)
+    {
+        $this->_data = $data;
+    }
+
+    /**
+     * @return string
+     */
+    protected function return_script_url()
+    {
+        return '//' . $this->_host . $this->_base_url . $this->_filename . '?t=' . filemtime($this->_db_file);
+    }
+
+    /**
+     * @return string
+     */
+    public function return_script()
+    {
+        if ($this->_return_script_shown === false && !empty($this->_data) && !empty($this->_data['__code__'])) {
+            $this->_return_script_shown = true;
+
+            $js = $this->_base_dir . $this->_filename;
+            if (!(file_exists($js) && is_file($js))) {
+                $this->_save_data_js($this->_data);
+            }
+
+            if ($this->_ucode_places) {
+                $params = '';
+                foreach ($this->_ucode_places as $place) {
+                    $params .= 'w[n].push(' . json_encode($place) . ');';
+                }
+
+                return '<script type="text/javascript">(function(w,d,n){w[n]=w[n]||[];' . $params . '})(window,document,"srtb_places");</script><script type="text/javascript" src="' . $this->return_script_url() . '" async="async"></script>';
+            }
+
+            return '<script type="text/javascript" src="' . $this->return_script_url() . '" async="async"></script>';
+        }
+
+        return '';
+    }
+
+    /**
+     * @param integer $block_id
+     *
+     * @return string
+     */
+    public function return_block($block_id)
+    {
+        if ($this->_site_id && isset($this->_data['__ads__'][$block_id])) {
+            return '<!-- SAPE RTB DIV ' . $this->_data['__ads__'][$block_id]['w'] . 'x' . $this->_data['__ads__'][$block_id]['h'] . ' --><div id="SRTB_' . (int)$block_id . '"></div><!-- SAPE RTB END -->';
+        }
+
+        return '';
+    }
+
+    /**
+     * @param array $options
+     *
+     * @return string
+     */
+    public function return_ucode($options)
+    {
+        if ($this->_ucode_id) {
+            $params = '';
+            foreach ($options as $key => $val) {
+                $params .= ' data-ad-' . $key . '="' .  htmlspecialchars($val, ENT_QUOTES) . '"';
+            }
+
+            return '<div class="srtb-tag-' . $this->_ucode_id . '" style="display:inline-block;"' . $params . '></div>';
+        }
+
+        return '';
+    }
+
+    /**
+     * @return bool
+     */
+    public function process_request()
+    {
+        if (isset($_GET['q']) && !empty($this->_data['__proxy__'])) {
+            $url = @base64_decode($_GET['q']);
+            if ($url !== false) {
+                $test   = false;
+                $prefix = preg_replace('~^(?:https?:)//~', '', $url);
+                foreach ($this->_data['__proxy__'] as $u) {
+                    if (strpos($u, $prefix) !== 0) {
+                        $test = true;
+                        break;
+                    }
+                }
+                if ($test === false) {
+                    $url = false;
+                }
+            }
+
+            if ($url !== false) {
+                if (strpos($url, '//') === 0) {
+                    $url = 'http:' . $url;
+                }
+                if ($ch = @curl_init()) {
+                    $headers = array();
+                    if (function_exists('getallheaders')) {
+                        $headers = getallheaders();
+                    } else {
+                        foreach ($_SERVER as $name => $value) {
+                            if (substr($name, 0, 5) == 'HTTP_') {
+                                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+                            }
+                        }
+                    }
+
+                    @curl_setopt($ch, CURLOPT_URL, $url);
+                    @curl_setopt($ch, CURLOPT_HEADER, true);
+                    @curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    @curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->_socket_timeout);
+                    @curl_setopt($ch, CURLOPT_USERAGENT, isset($headers['User-Agent']) ? $headers['User-Agent'] : (isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : ''));
+                    @curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+                    $data       = @curl_exec($ch);
+                    $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+                    $headerText = substr($data, 0, $headerSize);
+                    $data       = substr($data, $headerSize);
+
+                    @curl_close($ch);
+
+                    foreach (explode("\r\n", $headerText) as $i => $line) {
+                        if ($line) {
+                            header($line);
+                        }
+                    }
+
+                    echo $data;
+                }
+
+                return true;
+            }
+        }
+
+        header('HTTP/1.x 404 Not Found');
+
+        return false;
     }
 }
