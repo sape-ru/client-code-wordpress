@@ -2,10 +2,10 @@
 
 ## RU
 
-Плагин Wordpress для sape.ru **[v0.06](https://github.com/sape-ru/client-code-wordpress/blob/v0.06/plugin/saperu-integration-v0.06.zip?raw=true)**
+Плагин Wordpress для sape.ru **[v0.07](https://github.com/sape-ru/client-code-wordpress/blob/v0.07/plugin/saperu-integration-v0.07.zip?raw=true)**
 
-- встроенная версия клиентского кода Sape: 1.4.5
-- статейная биржа теперь не требует настройки шаблонов и УРЛ-ов
+- встроенная версия клиентского кода Sape: 1.4.6
+- добавлена обратная совместимость обычного режима размещения статей
 - исправлены мелкие ошибки
 
 ### Системные требования
@@ -21,9 +21,9 @@ WordPress  4.2+ [системные требования для разных в�
 
 ## EN
 
-Wordpress plugin for sape.ru webmaster services integration **[v0.06](https://github.com/sape-ru/client-code-wordpress/blob/v0.06/plugin/saperu-integration-v0.06.zip?raw=true)**
-- built in version of sape.ru's client code: 1.4.5
-- SapeArticles working without config .htaccess and templates
+Wordpress plugin for sape.ru webmaster services integration **[v0.07](https://github.com/sape-ru/client-code-wordpress/blob/v0.07/plugin/saperu-integration-v0.07.zip?raw=true)**
+- built in version of sape.ru's client code: 1.4.6
+- added backward compartibility for articles placement old common mode
 - fixed some bugs
 
 ### System requirements

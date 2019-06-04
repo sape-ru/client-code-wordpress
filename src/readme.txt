@@ -6,9 +6,9 @@ Contributors: Sape
 Donate link: https://www.sape.ru/
 Tags:  sape, seo, link, site, teaser, rtb
 Requires at least: 4.2
-Tested up to: 4.7
+Tested up to: 5.2.1
 Stable tag: trunk
-Version: 0.06
+Version: 0.07
 Author: Sape.ru
 Author URI: https://www.sape.ru/
 License: GPLv2 or later
@@ -105,6 +105,9 @@ Fix multisite mode
 ### v 0.06
 SapeArticles: Work without URL-template and .htaccess config
 
+### v 0.07
+Added backward compartibility for articles placement old common mode
+
 ## Changelog
 ### v 0.01
 First version
@@ -123,3 +126,6 @@ Fix multisite mode
 
 ### v 0.06
 SapeArticles: Work without URL-template and .htaccess config
+
+### v 0.07
+Added backward compartibility for articles placement old common mode

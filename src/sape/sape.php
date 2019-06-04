@@ -20,7 +20,7 @@
  */
 class SAPE_base
 {
-    protected $_version = '1.4.5';
+    protected $_version = '1.4.6';
 
     protected $_verbose = false;
 
@@ -1855,6 +1855,8 @@ class SAPE_context extends SAPE_base
  */
 class SAPE_articles extends SAPE_base
 {
+    const INTEGRATION_TYPE_WORDPRESS = 2;
+
     protected $_request_mode;
 
     protected $_server_list = array('dispenser.articles.sape.ru');
@@ -1985,81 +1987,94 @@ class SAPE_articles extends SAPE_base
     }
 
     /**
-     * @param $command
+     * Основной метод при работе в режиме интеграции с CMS Wordpress
+     *
+     * @param $newArticles
+     * @param $updateArticles
+     * @param $deletedArticles
+     * @param $upload_base_dir
      */
-    public function wp_prosess(&$newArticles, &$updateArticles, &$deletedArticles, $upload_base_dir) {
+    public function wp_process(&$newArticles, &$updateArticles, &$deletedArticles, $upload_base_dir) {
         // Инициализация файла работы с WordPress
         $this->_wp_init();
 
-        // Список статей на диспенсере
-        $dispenserArticles = array();
-        if (isset($this->_data['index']['articles'])) {
-            foreach ($this->_data['index']['articles'] as $article) {
-                $dispenserArticles[(int)$article['id']] = array(
-                    'id'           => (int)$article['id'],
-                    'date_updated' => (int)$article['date_updated']
-                );
-            }
-        }
-
-        // Список статей из WordPress-а
-        $wpArticles = $this->_data['wp'];
-
-        $dispenserArticleIds = array_keys($dispenserArticles);
-        $wpArticleIds        = array_keys($wpArticles);
-        $unionArticlesIds    = array_merge($dispenserArticleIds, $wpArticleIds);
-
-        foreach ($unionArticlesIds as $articleId) {
-            // Новые статьи
-            if (in_array($articleId, $dispenserArticleIds) && !in_array($articleId, $wpArticleIds)) {
-                $this->_load_wp_article($dispenserArticles[$articleId]);
-
-                $newArticles[$articleId] = array(
-                    'id'          => (int)$articleId,
-                    'title'       => $this->_data['article']['title'],
-                    'keywords'    => $this->_data['article']['keywords'],
-                    'description' => $this->_data['article']['description'],
-                    'body'        => $this->_data['article']['body'],
-                );
+        if ((int)$this->_data['index']['integration_type'] == self::INTEGRATION_TYPE_WORDPRESS) {
+            // Список статей на диспенсере
+            $dispenserArticles = array();
+            if (isset($this->_data['index']['articles'])) {
+                foreach ($this->_data['index']['articles'] as $article) {
+                    $dispenserArticles[(int)$article['id']] = array(
+                        'id'           => (int)$article['id'],
+                        'date_updated' => (int)$article['date_updated']
+                    );
+                }
             }
 
-            // Существующие статьи
-            if (in_array($articleId, $dispenserArticleIds) && in_array($articleId, $wpArticleIds)) {
-                $this->_load_wp_article($dispenserArticles[$articleId]);
+            // Список статей из WordPress-а
+            $wpArticles = $this->_data['wp'];
 
-                if (
-                    $this->_data['article']['title'] != $this->_data['wp'][$articleId]['wp_post_title']
-                    ||
-                    $this->_data['article']['body'] != $this->_data['wp'][$articleId]['wp_post_content']
-                ) {
-                    $updateArticles[$articleId] = array(
+            $dispenserArticleIds = array_keys($dispenserArticles);
+            $wpArticleIds        = array_keys($wpArticles);
+            $unionArticlesIds    = array_merge($dispenserArticleIds, $wpArticleIds);
+
+            foreach ($unionArticlesIds as $articleId) {
+                // Новые статьи
+                if (in_array($articleId, $dispenserArticleIds) && !in_array($articleId, $wpArticleIds)) {
+                    $this->_load_wp_article($dispenserArticles[$articleId]);
+
+                    $newArticles[$articleId] = array(
                         'id'          => (int)$articleId,
-                        'wp_post_id'  => $this->_data['wp'][$articleId]['wp_post_id'],
                         'title'       => $this->_data['article']['title'],
                         'keywords'    => $this->_data['article']['keywords'],
                         'description' => $this->_data['article']['description'],
                         'body'        => $this->_data['article']['body'],
                     );
                 }
+
+                // Существующие статьи
+                if (in_array($articleId, $dispenserArticleIds) && in_array($articleId, $wpArticleIds)) {
+                    $this->_load_wp_article($dispenserArticles[$articleId]);
+
+                    if (
+                        $this->_data['article']['title'] != $this->_data['wp'][$articleId]['wp_post_title']
+                        ||
+                        $this->_data['article']['body'] != $this->_data['wp'][$articleId]['wp_post_content']
+                    ) {
+                        $updateArticles[$articleId] = array(
+                            'id'          => (int)$articleId,
+                            'wp_post_id'  => $this->_data['wp'][$articleId]['wp_post_id'],
+                            'title'       => $this->_data['article']['title'],
+                            'keywords'    => $this->_data['article']['keywords'],
+                            'description' => $this->_data['article']['description'],
+                            'body'        => $this->_data['article']['body'],
+                        );
+                    }
+                }
+
+                // Снятые статьи
+                if (!in_array($articleId, $dispenserArticleIds) && in_array($articleId, $wpArticleIds)) {
+                    $deletedArticles[$articleId] = array(
+                        'id'         => (int)$articleId,
+                        'wp_post_id' => (int)$wpArticles[$articleId]['wp_post_id']
+                    );
+                }
             }
 
-            // Снятые статьи
-            if (!in_array($articleId, $dispenserArticleIds) && in_array($articleId, $wpArticleIds)) {
-                $deletedArticles[$articleId] = array(
-                    'id'         => (int)$articleId,
-                    'wp_post_id' => (int)$wpArticles[$articleId]['wp_post_id']
-                );
-            }
-        }
-
-        // Работа с изображениями
-        if (isset($this->_data['index']['images'])) {
-            foreach ($this->_data['index']['images'] as $image_uri => $image_meta) {
-                $this->_load_wp_image($image_uri, $image_meta['article_id'], $upload_base_dir);
+            // Работа с изображениями
+            if (isset($this->_data['index']['images'])) {
+                foreach ($this->_data['index']['images'] as $image_uri => $image_meta) {
+                    $this->_load_wp_image($image_uri, $image_meta['article_id'], $upload_base_dir);
+                }
             }
         }
     }
 
+    /**
+     * Массив идентификаторов постов движка Wordpress,
+     * которые были созданы в режиме интеграции
+     *
+     * @return array
+     */
     public function wp_get_post_ids() {
         $wpPostIds = array();
 
@@ -2076,6 +2091,13 @@ class SAPE_articles extends SAPE_base
         return $wpPostIds;
     }
 
+    /**
+     * Сохранение информации о постах движка Wordpress,
+     * которые были созданы в режиме интеграции
+     *
+     * @param        $posts
+     * @param string $mode
+     */
     public function wp_save_local_db($posts, $mode = 'add') {
         if (isset($posts) && is_array($posts)) {
             $this->_save_file_name = 'articles.wp.db';
@@ -2094,6 +2116,13 @@ class SAPE_articles extends SAPE_base
         }
     }
 
+    /**
+     * Передача диспенсеру УРЛов размещенных статей,
+     * созданных в режиме интеграции
+     *
+     * @param $posts
+     * @param $upload_base_url
+     */
     public function wp_push_posts($posts, $upload_base_url) {
         $this->_set_request_mode('article');
 
@@ -2121,6 +2150,9 @@ class SAPE_articles extends SAPE_base
         }
     }
 
+    /**
+     * Инициализация режима интеграции с CMS Wordpress
+     */
     protected function _wp_init()
     {
         $this->_set_request_mode('wp');
@@ -2185,6 +2217,11 @@ class SAPE_articles extends SAPE_base
         return $this->_return_html($article_html);
     }
 
+    /**
+     * Загрузка статьи в режиме интеграции CMS Wordpress
+     *
+     * @param $article_meta
+     */
     protected function _load_wp_article($article_meta)
     {
         $this->_set_request_mode('article');
@@ -2222,6 +2259,15 @@ class SAPE_articles extends SAPE_base
         return true;
     }
 
+    /**
+     * Создание папки для хранения изображений статьи
+     * в режиме интеграции с CMS Wordpress
+     *
+     * @param $article_id
+     * @param $upload_base_dir
+     *
+     * @return bool
+     */
     protected function _prepare_wp_path_to_images($article_id, $upload_base_dir)
     {
         $this->_images_path = $upload_base_dir . '/' . (int)$article_id . '/';
@@ -2282,6 +2328,14 @@ class SAPE_articles extends SAPE_base
         return $this->_read($image_path);
     }
 
+    /**
+     * Загрузка изображения статьи в режиме
+     * интеграции с CMS Wordpress
+     *
+     * @param $image_uri
+     * @param $article_id
+     * @param $upload_base_dir
+     */
     protected function _load_wp_image($image_uri, $article_id, $upload_base_dir)
     {
         $this->_request_uri = $image_uri;
@@ -2573,7 +2627,7 @@ class SAPE_articles extends SAPE_base
             } else {
                 return $this->_raise_error('Нет файла ' . $this->_db_file . '. Создать не удалось. Выставите права 777 на папку.');
             }
-            $this->_write($this->_db_file, 'a:0:{}');
+            $this->_write($this->_db_file,  serialize(array()));
         }
 
         if (!is_writable($this->_db_file)) {

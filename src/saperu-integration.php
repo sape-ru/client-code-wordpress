@@ -3,7 +3,7 @@
 Plugin Name: Sape.ru integration
 Plugin URI: https://github.com/sape-ru/client-code-wordpress/releases
 Description: Plugin for Sape.ru webmaster services integration
-Version: 0.06
+Version: 0.07
 Author: Sape.ru
 Author URI: http://www.sape.ru/
 License: GPLv2 or later
@@ -68,7 +68,10 @@ class Sape_API {
 		register_uninstall_hook( __FILE__, array( __CLASS__, 'uninstall_hook' ) );
 
 		// init
-		add_action( 'init', array( &$this, 'init' ) );
+		add_action('init', array(&$this, 'init'));
+
+		// updrage
+        add_action('upgrader_process_complete', array(&$this, 'upgrade'), 10, 2);
 
 		// _SAPE_USER
 		if ( ! defined( '_SAPE_USER' ) ) {
@@ -128,6 +131,9 @@ class Sape_API {
 			});
 
 			add_action( 'wp_footer', array( &$this, 'render_remained_article' ), 1 );
+
+			// Выводим контент постов без внутреннего преобразования Wordpress
+            add_filter( 'the_content', array(&$this, 'disable_transform_content') );
 		}
 	}
 
@@ -152,16 +158,14 @@ class Sape_API {
 				register_widget( 'Sape_API_Widget_Tizer' );
 			}, 2 );
 
-			if ( _SAPE_USER !== '' ) {
-				add_shortcode('sape_tizer', array(&$this, 'shortcode_sape_tizer'));
-				add_filter('no_texturize_shortcodes', function ($list) {
-					$list[] = 'sape_tizer';
+			add_shortcode('sape_tizer', array(&$this, 'shortcode_sape_tizer'));
 
-					return $list;
-				});
-			}
+            add_filter('no_texturize_shortcodes', function ($list) {
+                $list[] = 'sape_tizer';
+
+                return $list;
+            });
 		}
-
 	}
 
 	protected function _registerRTB()
@@ -206,6 +210,17 @@ class Sape_API {
         add_action('user_has_cap', array( &$this, 'deny_edit_and_delete_posts' ), 10, 3);
 	}
 
+	public function upgrade($upgrader_object, $options) {
+        $current_plugin_path_name = plugin_basename( __FILE__ );
+        if ($options['action'] == 'update' && $options['type'] == 'plugin' ) {
+            foreach($options['plugins'] as $each_plugin){
+                if ($each_plugin == $current_plugin_path_name) {
+                    self::activation_hook();
+                }
+            }
+        }
+    }
+
     function deny_edit_and_delete_posts($allcaps, $cap, $args) {
         if (in_array($args[0], array('edit_post', 'delete_post'))) {
             $postId = (int)$args[2];
@@ -217,6 +232,21 @@ class Sape_API {
             }
         }
         return $allcaps;
+    }
+
+    function disable_transform_content($content) {
+	    try {
+            $postId = $GLOBALS['post']->ID;
+            if ((int)$postId > 0) {
+                $sape_articles_post_ids = $this->_getSapeArticles()->wp_get_post_ids();
+                if (in_array($postId, $sape_articles_post_ids)) {
+                    remove_filter('the_content', 'wpautop');
+                    remove_filter('the_content', 'wptexturize');
+                }
+            }
+        } catch (Exception $e) {}
+
+        return $content;
     }
 
 	public static function activation_hook() {
@@ -323,14 +353,14 @@ class Sape_API {
 		return $this->_getSapeArticles()->return_announcements( $n );
 	}
 
-	public function _sape_wp_prosess() {
+	public function _sape_wp_process() {
 	    $newArticles     = array();
         $updateArticles  = array();
         $deleteArticles  = array();
 
         $uploadDirInfo = wp_upload_dir();
 
-        $this->_getSapeArticles()->wp_prosess($newArticles, $updateArticles, $deleteArticles, $uploadDirInfo['basedir']);
+        $this->_getSapeArticles()->wp_process($newArticles, $updateArticles, $deleteArticles, $uploadDirInfo['basedir']);
 
 	    // Блок обработки новых статей
 	    if (isset($updateArticles) && is_array($updateArticles) && count($newArticles) > 0) {
@@ -445,7 +475,7 @@ class Sape_API {
 		);
 
 		// Запускаем обработку размещения статей
-		$this->_sape_wp_prosess();
+		$this->_sape_wp_process();
 
 		return ! empty( $text ) ? $text : $content;
 	}
@@ -514,9 +544,9 @@ class Sape_API {
 		register_setting( 'sape_base', 'sape_user', 'trim' );
 		register_setting( 'sape_base', 'sape_part_is_client', 'boolval' );
 		register_setting( 'sape_base', 'sape_part_is_context', 'boolval' );
-		register_setting( 'sape_base', 'sape_part_is_articles', 'boolval' );
+        register_setting( 'sape_base', 'sape_part_is_articles', array('type'=>'boolval' , 'sanitize_callback' => array( &$this, 'change_field_article')) );
 
-		register_setting( 'sape_base', 'sape_part_is_articles_post_author', array('type'=>'intval'));
+        register_setting( 'sape_base', 'sape_part_is_articles_post_author', array('type'=>'intval'));
         register_setting( 'sape_base', 'sape_part_is_articles_post_category', array('type'=>'intval'));
 
 		register_setting( 'sape_base', 'sape_part_is_tizer', 'boolval' );
@@ -696,7 +726,7 @@ RTB блоки.<br/>
 	{
 	    $SID = get_option('sape_user');
 
-	    if($SID) {
+	    if ($SID) {
 	        $file_name = $this->_getTizerImageOptions($args);
             if(isset($file_name) && !is_array($file_name) && $file_name <> '') {
 				$dir = self::_getSapePath() . DIRECTORY_SEPARATOR . 'sape.php';
@@ -706,6 +736,17 @@ RTB блоки.<br/>
 		}
 		return $args;
 	}
+
+    function change_field_article($args)
+    {
+        $SID = get_option('sape_user');
+        if ($SID) {
+            $dir = self::_getSapePath() . DIRECTORY_SEPARATOR . 'sape.php';
+            $data = sprintf('<?php define(\'_SAPE_USER\', \'%s\');require_once(\'%s\');$sape = new SAPE_articles();echo $sape->process_request();', $SID, $dir);
+            file_put_contents($_SERVER['DOCUMENT_ROOT'].'/'.$SID.'.php', $data);
+        }
+        return $args;
+    }
 
     function addOrUpdatePost($args)
     {
