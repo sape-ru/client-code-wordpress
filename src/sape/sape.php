@@ -20,7 +20,7 @@
  */
 class SAPE_base
 {
-    protected $_version = '1.4.6';
+    protected $_version = '1.4.6 (WP v0.07)';
 
     protected $_verbose = false;
 
