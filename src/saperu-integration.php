@@ -240,8 +240,8 @@ class Sape_API {
             if ((int)$postId > 0) {
                 $sape_articles_post_ids = $this->_getSapeArticles()->wp_get_post_ids();
                 if (in_array($postId, $sape_articles_post_ids)) {
-                    remove_filter('the_content', 'wpautop');
-                    remove_filter('the_content', 'wptexturize');
+                    remove_all_filters('the_content');
+                    $content = $GLOBALS['post']->post_content;
                 }
             }
         } catch (Exception $e) {}
