@@ -257,24 +257,49 @@ class Sape_API {
 
 		// let make dir and copy sape's files to uploads/.sape/
 		if ( ! wp_mkdir_p( self::_getSapePath() ) ) {
-			$path = plugin_basename( __FILE__ );
-			deactivate_plugins( $path );
-
-			$path_upload = ABSPATH . WPINC . '/upload';
-			$link        = wp_nonce_url( admin_url( 'plugins.php?action=activate&plugin=' . $path ), 'activate-plugin_' . $path );
-			$string      = '';
-			$string .= 'Sape: ' . sprintf( 'директория %s не доступна для записи', '<i>`' . $path_upload . '`</i>' ) . '.<br/>';
-			$string .= sprintf( 'Исправьте и активируйте плагин %s заново', '<b>' . $path . '</b>' ) . '.<br/>';
-			$string .= '<a href="' . $link . '" class="edit">' . __( 'Activate' ) . '</a>';
-
-			wp_die( $string );
-		} else {
-			// let copy file to created dir
-			$local_path = dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'sape';
-			copy( $local_path . DIRECTORY_SEPARATOR . 'sape.php', self::_getSapePath() . DIRECTORY_SEPARATOR . 'sape.php' );
-			copy( $local_path . DIRECTORY_SEPARATOR . '.htaccess', self::_getSapePath() . DIRECTORY_SEPARATOR . '.htaccess' );
+            $activationFailedMessage = 'Sape: ' . sprintf( 'директория %s не доступна для записи', '<i>`' . ABSPATH . WPINC . '/upload' . '`</i>' );
+		    self::chmod_wrong_on_activation($activationFailedMessage);
 		}
+
+        // let copy file to created dir
+        $local_path = dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'sape';
+
+        $files = array(
+            $local_path . DIRECTORY_SEPARATOR . 'sape.php' => self::_getSapePath() . DIRECTORY_SEPARATOR . 'sape.php',
+            $local_path . DIRECTORY_SEPARATOR . '.htaccess' => self::_getSapePath() . DIRECTORY_SEPARATOR . '.htaccess'
+        );
+
+        foreach ($files as $filePathFrom => $filePathTo) {
+            if (!copy( $filePathFrom, $filePathTo)) {
+                $activationFailedMessage = 'Sape: ' . sprintf( 'файл %s не доступен для записи', '<i>`' . $filePathTo . '`</i>');
+                self::chmod_wrong_on_activation($activationFailedMessage);
+            }
+        }
 	}
+
+	public static function chmod_wrong_on_activation($activationFailedMessage) {
+        $path = plugin_basename( __FILE__ );
+        deactivate_plugins( $path );
+
+        $link        = wp_nonce_url( admin_url( 'plugins.php?action=activate&plugin=' . $path ), 'activate-plugin_' . $path );
+        $string      = '';
+        $string .= $activationFailedMessage . '.<br/>';
+        $string .= sprintf( 'Исправьте и активируйте плагин %s заново', '<b>' . $path . '</b>' ) . '.<br/>';
+        $string .= '<a href="' . $link . '" class="edit">' . __( 'Activate' ) . '</a>';
+
+        wp_die( $string );
+    }
+
+    public static function chmod_wrong_on_save_options($saveFailedMessage) {
+        $path = plugin_basename( __FILE__ );
+
+        $string      = '';
+        $string .= $saveFailedMessage . '.<br/>';
+        $string .= sprintf( 'Исправьте права доступа и настройте плагин %s заново', '<b>' . $path . '</b>' ) . '.<br/>';
+        $string .= '<a href="admin.php?page=page_sape">' . __( 'Settings' ) . '</a>';
+
+        wp_die( $string );
+    }
 
 	public static function deactivation_hook() {
 		// clear cache?
@@ -731,20 +756,31 @@ RTB блоки.<br/>
             if(isset($file_name) && !is_array($file_name) && $file_name <> '') {
 				$dir = self::_getSapePath() . DIRECTORY_SEPARATOR . 'sape.php';
 				$data = sprintf('<?php define(\'_SAPE_USER\', \'%s\');require_once(\'%s\');$sape = new SAPE_client(array(\'charset\' => \'UTF-8\'));$sape->show_image();', $SID, $dir);
-				file_put_contents($_SERVER['DOCUMENT_ROOT'].'/'.$file_name, $data);
+				$fileName = $_SERVER['DOCUMENT_ROOT'].'/'.$file_name;
+                if (!file_put_contents($fileName, $data)) {
+                    $message = 'Sape: ' . sprintf( 'папка %s не доступна для записи', '<i>`' . $_SERVER['DOCUMENT_ROOT'] . '`</i>');
+                    self::chmod_wrong_on_save_options($message);
+                }
 			}
 		}
+
 		return $args;
 	}
 
     function change_field_article($args)
     {
         $SID = get_option('sape_user');
+
         if ($SID) {
             $dir = self::_getSapePath() . DIRECTORY_SEPARATOR . 'sape.php';
             $data = sprintf('<?php define(\'_SAPE_USER\', \'%s\');require_once(\'%s\');$sape = new SAPE_articles();echo $sape->process_request();', $SID, $dir);
-            file_put_contents($_SERVER['DOCUMENT_ROOT'].'/'.$SID.'.php', $data);
+            $fileName = $_SERVER['DOCUMENT_ROOT'].'/'.$SID.'.php';
+            if (!file_put_contents($fileName, $data)) {
+                $message = 'Sape: ' . sprintf( 'папка %s не доступна для записи', '<i>`' . $_SERVER['DOCUMENT_ROOT'] . '`</i>');
+                self::chmod_wrong_on_save_options($message);
+            }
         }
+
         return $args;
     }
 
