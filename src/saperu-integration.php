@@ -3,7 +3,7 @@
 Plugin Name: Sape.ru integration
 Plugin URI: https://github.com/sape-ru/client-code-wordpress/releases
 Description: Plugin for Sape.ru webmaster services integration
-Version: 0.07
+Version: 0.08
 Author: Sape.ru
 Author URI: http://www.sape.ru/
 License: GPLv2 or later
@@ -292,12 +292,9 @@ class Sape_API {
     }
 
     public static function chmod_wrong_on_save_options($saveFailedMessage) {
-        $path = plugin_basename( __FILE__ );
-
         $string      = '';
-        $string .= $saveFailedMessage . '.<br/>';
-        $string .= sprintf( 'Исправьте права доступа и настройте плагин %s заново', '<b>' . $path . '</b>' ) . '.<br/>';
-        $string .= '<a href="admin.php?page=page_sape">' . __( 'Settings' ) . '</a>';
+        $string .= $saveFailedMessage . '<br/>';
+        $string .= 'или исправить права доступа и <a href="admin.php?page=page_sape">настроить</a> плагин заново.';
 
         wp_die( $string );
     }
@@ -768,8 +765,13 @@ RTB блоки.<br/>
 				$data = sprintf('<?php define(\'_SAPE_USER\', \'%s\');require_once(\'%s\');$sape = new SAPE_client(array(\'charset\' => \'UTF-8\'));$sape->show_image();', $SID, $dir);
 				$fileName = $_SERVER['DOCUMENT_ROOT'].'/'.$file_name;
                 if (!file_put_contents($fileName, $data)) {
-                    $message = 'Sape: ' . sprintf( 'папка %s не доступна для записи', '<i>`' . $_SERVER['DOCUMENT_ROOT'] . '`</i>');
-                    self::chmod_wrong_on_save_options($message);
+                    $userData = file_get_contents($fileName);
+                    if ($userData !== $data) {
+                        $message = 'Sape: ' . sprintf( 'папка %s не доступна для записи.', '<i>`' . $_SERVER['DOCUMENT_ROOT'] . '`</i>');
+                        $message .= '<p>Вы можете создать файл <i>`' . $fileName . '`</i> вручную с содержимым:</p>';
+                        $message .= '<p>' . htmlentities($data) . '</p>';
+                        self::chmod_wrong_on_save_options($message);
+                    }
                 }
 			}
 		}
@@ -786,8 +788,13 @@ RTB блоки.<br/>
             $data = sprintf('<?php define(\'_SAPE_USER\', \'%s\');require_once(\'%s\');$sape = new SAPE_articles();echo $sape->process_request();', $SID, $dir);
             $fileName = $_SERVER['DOCUMENT_ROOT'].'/'.$SID.'.php';
             if (!file_put_contents($fileName, $data)) {
-                $message = 'Sape: ' . sprintf( 'папка %s не доступна для записи', '<i>`' . $_SERVER['DOCUMENT_ROOT'] . '`</i>');
-                self::chmod_wrong_on_save_options($message);
+                $userData = file_get_contents($fileName);
+                if ($userData !== $data) {
+                    $message = 'Sape: ' . sprintf( 'папка %s не доступна для записи.', '<i>`' . $_SERVER['DOCUMENT_ROOT'] . '`</i>');
+                    $message .= '<p>Вы можете создать файл <i>`' . $fileName . '`</i> вручную с содержимым:</p>';
+                    $message .= '<p>' . htmlentities($data) . '</p>';
+                    self::chmod_wrong_on_save_options($message);
+                }
             }
         }
 

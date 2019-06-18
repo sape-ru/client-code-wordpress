@@ -8,7 +8,7 @@ Tags:  sape, seo, link, site, teaser, rtb
 Requires at least: 4.2
 Tested up to: 5.2.1
 Stable tag: trunk
-Version: 0.07
+Version: 0.08
 Author: Sape.ru
 Author URI: https://www.sape.ru/
 License: GPLv2 or later
@@ -108,6 +108,10 @@ SapeArticles: Work without URL-template and .htaccess config
 ### v 0.07
 Added backward compartibility for articles placement old common mode
 
+### v 0.08
+Fix context back links placement
+Fix split_data_file mode
+
 ## Changelog
 ### v 0.01
 First version
@@ -129,3 +133,7 @@ SapeArticles: Work without URL-template and .htaccess config
 
 ### v 0.07
 Added backward compartibility for articles placement old common mode
+
+### v 0.08
+Fix context back links placement
+Fix split_data_file mode
