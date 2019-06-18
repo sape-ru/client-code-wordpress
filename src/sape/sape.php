@@ -20,7 +20,7 @@
  */
 class SAPE_base
 {
-    protected $_version = '1.4.6 (WP v0.07)';
+    protected $_version = '1.4.7 (WP v0.07)';
 
     protected $_verbose = false;
 
@@ -53,7 +53,7 @@ class SAPE_base
 
     protected $_request_uri = '';
 
-    protected $_multi_site = false;
+    protected $_multi_site = true;
 
     /**
      * Способ подключения к удалённому серверу [file_get_contents|curl|socket]
@@ -1439,7 +1439,7 @@ class SAPE_client extends SAPE_base
                 $this->_write($directory . $file, $this->_code_data($array));
             }
         } else {
-            parent::_save_data($data, $filename = '');
+            parent::_save_data($data, $filename);
         }
     }
 }
@@ -1845,7 +1845,7 @@ class SAPE_context extends SAPE_base
                 $this->_write($directory . $file, $this->_code_data($array));
             }
         } else {
-            parent::_save_data($data, $filename = '');
+            parent::_save_data($data, $filename);
         }
     }
 }

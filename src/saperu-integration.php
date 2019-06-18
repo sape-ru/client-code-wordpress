@@ -59,6 +59,8 @@ class Sape_API {
 
 	private $_plugin_basename;
 
+	private $_sape_context_replace_texts;
+
 	public function __construct() {
 		$this->_plugin_basename = plugin_basename( __FILE__ );
 		// misc
@@ -140,8 +142,7 @@ class Sape_API {
 	protected function _registerContext()
 	{
 		if ( get_option( 'sape_part_is_context' ) && _SAPE_USER !== '' ) {
-
-			add_filter( 'the_content', array( &$this, '_sape_replace_in_text_segment' ), 11, 1 );
+            add_filter( 'the_content', array( &$this, '_sape_replace_in_text_segment' ), 11, 1);
 			add_filter( 'the_excerpt', array( &$this, '_sape_replace_in_text_segment' ), 11, 1 );
 			remove_filter( 'the_content', 'do_shortcode' );
 			remove_filter( 'the_excerpt', 'do_shortcode' );
@@ -362,8 +363,15 @@ class Sape_API {
 
 		return $this->_sape_context;
 	}
+
 	public function _sape_replace_in_text_segment( $text ) {
-		return $this->_getSapeContext()->replace_in_text_segment( $text );
+	    $hash = md5($text);
+
+	    if (!isset($this->_sape_context_replace_texts[$hash])) {
+            $this->_sape_context_replace_texts[$hash] = $this->_getSapeContext()->replace_in_text_segment( $text );
+        }
+
+        return $this->_sape_context_replace_texts[$hash];
 	}
 
 	private function _getSapeArticles() {
@@ -374,6 +382,7 @@ class Sape_API {
 
 		return $this->_sape_articles;
 	}
+
 	public function _sape_return_announcements( $n ) {
 		return $this->_getSapeArticles()->return_announcements( $n );
 	}
@@ -475,6 +484,7 @@ class Sape_API {
 
 		return ! empty( $text ) ? $text : $content;
 	}
+
 	public function shortcode_sape_tizer( $atts, $content = null ) {
 		$atts = shortcode_atts( array(
 			'id'       => null,
@@ -488,6 +498,7 @@ class Sape_API {
 
 		return ! empty( $text ) ? $text : $content;
 	}
+
 	public function shortcode_sape_article( $atts, $content = null ) {
 		$atts = shortcode_atts( array(
 			'count'       => null,
@@ -504,7 +515,6 @@ class Sape_API {
 
 		return ! empty( $text ) ? $text : $content;
 	}
-
 
 	public function plugin_action_links( $links ) {
 		unset( $links['edit'] );
