@@ -6,9 +6,9 @@ Contributors: Sape
 Donate link: https://www.sape.ru/
 Tags:  sape, seo, link, site, teaser, rtb
 Requires at least: 4.2
-Tested up to: 5.2.1
+Tested up to: 5.3.2
 Stable tag: trunk
-Version: 0.08
+Version: 0.09
 Author: Sape.ru
 Author URI: https://www.sape.ru/
 License: GPLv2 or later
@@ -112,6 +112,10 @@ Added backward compartibility for articles placement old common mode
 Fix context back links placement
 Fix split_data_file mode
 
+### v 0.09
+Fix recreating articles
+Fix deleting links in split_data_file mode
+
 ## Changelog
 ### v 0.01
 First version
@@ -137,3 +141,7 @@ Added backward compartibility for articles placement old common mode
 ### v 0.08
 Fix context back links placement
 Fix split_data_file mode
+
+### v 0.09
+Fix recreating articles
+Fix deleting links in split_data_file mode

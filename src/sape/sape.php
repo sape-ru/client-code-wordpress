@@ -20,7 +20,7 @@
  */
 class SAPE_base
 {
-    protected $_version = '1.4.7 (WP v0.08)';
+    protected $_version = '1.4.9 (WP v0.09)';
 
     protected $_verbose = false;
 
@@ -1438,6 +1438,9 @@ class SAPE_client extends SAPE_base
             foreach ($hashArray as $file => $array) {
                 $this->_write($directory . $file, $this->_code_data($array));
             }
+            if (!isset($hashArray[basename($filename)])) {
+                parent::_save_data('', $filename);
+            }
         } else {
             parent::_save_data($data, $filename);
         }
@@ -1844,6 +1847,9 @@ class SAPE_context extends SAPE_base
             foreach ($hashArray as $file => $array) {
                 $this->_write($directory . $file, $this->_code_data($array));
             }
+            if (!isset($hashArray[basename($filename)])) {
+                parent::_save_data('', $filename);
+            }
         } else {
             parent::_save_data($data, $filename);
         }
@@ -1994,7 +2000,8 @@ class SAPE_articles extends SAPE_base
      * @param $deletedArticles
      * @param $upload_base_dir
      */
-    public function wp_process(&$newArticles, &$updateArticles, &$deletedArticles, $upload_base_dir) {
+    public function wp_process(&$newArticles, &$updateArticles, &$deletedArticles, $upload_base_dir)
+    {
         // Инициализация файла работы с WordPress
         $this->_wp_init();
 
@@ -2075,7 +2082,8 @@ class SAPE_articles extends SAPE_base
      *
      * @return array
      */
-    public function wp_get_post_ids() {
+    public function wp_get_post_ids()
+    {
         $wpPostIds = array();
 
         // Инициализация файла работы с WordPress
@@ -2098,10 +2106,11 @@ class SAPE_articles extends SAPE_base
      * @param        $posts
      * @param string $mode
      */
-    public function wp_save_local_db($posts, $mode = 'add') {
+    public function wp_save_local_db($posts, $mode = 'add')
+    {
         if (isset($posts) && is_array($posts)) {
             $this->_save_file_name = 'articles.wp.db';
-            $this->_db_file = dirname(__FILE__) . '/' . $this->_host . '.' . $this->_save_file_name;
+            $this->_db_file        = dirname(__FILE__) . '/' . $this->_host . '.' . $this->_save_file_name;
 
             foreach ($posts as $articleId => $post) {
                 if (in_array($mode, array('add', 'update'))) {
@@ -2123,7 +2132,8 @@ class SAPE_articles extends SAPE_base
      * @param $posts
      * @param $upload_base_url
      */
-    public function wp_push_posts($posts, $upload_base_url) {
+    public function wp_push_posts($posts, $upload_base_url)
+    {
         $this->_set_request_mode('article');
 
         if (isset($posts) && is_array($posts)) {
@@ -2131,7 +2141,7 @@ class SAPE_articles extends SAPE_base
                 $this->_article_id = (int)$articleId;
                 $path              = $this->_get_dispenser_path();
                 $path_postfix      = '&set_article_url=' . urlencode($post['wp_post_url']);
-                $path_postfix     .= '&set_article_image_url=' . urlencode($upload_base_url . '/' . (int)$articleId . '/');
+                $path_postfix      .= '&set_article_image_url=' . urlencode($upload_base_url . '/' . (int)$articleId . '/');
 
                 foreach ($this->_server_list as $server) {
                     if ($data = $this->_fetch_remote_file($server, $path . $path_postfix)) {
@@ -2620,14 +2630,14 @@ class SAPE_articles extends SAPE_base
     {
         $this->_db_file = dirname(__FILE__) . '/' . $this->_host . '.' . $this->_save_file_name;
 
-        if (!is_file($this->_db_file)) {
+        if (!file_exists($this->_db_file)) {
             // Пытаемся создать файл.
             if (@touch($this->_db_file)) {
                 @chmod($this->_db_file, 0666); // Права доступа
             } else {
                 return $this->_raise_error('Нет файла ' . $this->_db_file . '. Создать не удалось. Выставите права 777 на папку.');
             }
-            $this->_write($this->_db_file,  serialize(array()));
+            $this->_write($this->_db_file, serialize(array()));
         }
 
         if (!is_writable($this->_db_file)) {
