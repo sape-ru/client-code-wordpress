@@ -20,7 +20,7 @@
  */
 class SAPE_base
 {
-    protected $_version = '1.4.9 (WP v0.09)';
+    protected $_version = '1.5.0 (WP v0.10)';
 
     protected $_verbose = false;
 
@@ -2629,6 +2629,7 @@ class SAPE_articles extends SAPE_base
     protected function _load_wp_data()
     {
         $this->_db_file = dirname(__FILE__) . '/' . $this->_host . '.' . $this->_save_file_name;
+        $this->_db_file = mb_strtolower($this->_db_file);
 
         if (!file_exists($this->_db_file)) {
             // Пытаемся создать файл.
