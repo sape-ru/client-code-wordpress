@@ -1040,7 +1040,7 @@ class SAPE_client extends SAPE_base
             $items .= $item;
         }
 
-        // Вставной обязатльный элемент в блоке
+        // Вставной обязательный элемент в блоке
         if (true == $need_show_obligatory_block) {
             $items .= str_replace('{item}', $this->_block_ins_itemobligatory, $item_container_tpl);
             $nof_items_total += 1;
