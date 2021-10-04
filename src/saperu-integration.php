@@ -3,7 +3,7 @@
 Plugin Name: Sape.ru integration
 Plugin URI: https://github.com/sape-ru/client-code-wordpress/releases
 Description: Plugin for Sape.ru webmaster services integration
-Version: 0.10
+Version: 0.11
 Author: Sape.ru
 Author URI: http://www.sape.ru/
 License: GPLv2 or later
@@ -405,6 +405,27 @@ class Sape_API {
                     'post_status'      => 'publish'
                 );
 
+                // Защита от дублирования статей
+                global $wpdb;
+                $postInfo = $wpdb->get_row(
+                    "
+                        SELECT 
+                            id
+                        FROM 
+                            $wpdb->posts 
+                        WHERE
+                            post_name = '" . (int)$articleId . "' AND 
+                            post_status = 'publish'
+                        ORDER BY 
+                            id DESC
+                    ", 'ARRAY_A'
+                );
+
+                if (count($postInfo) > 0) {
+                    $args['post_id'] = (int)$postInfo['id'];
+                }
+                unset($postInfo);
+
                 // Создаем пост в WordPress
                 $postInfo = $this->addOrUpdatePost($args);
                 $addedPosts[$articleId] = $postInfo;
@@ -415,14 +436,16 @@ class Sape_API {
                 add_post_meta($postInfo['wp_post_id'], 'sseo_meta_description', $articleInfo['description']);
 	        }
 
-            // Сохраняем изменения в локальный файл
-            $this->_getSapeArticles()->wp_save_local_db($addedPosts, 'add');
-
             // Пушим в диспенсер УРЛы
             $this->_getSapeArticles()->wp_push_posts($addedPosts, $uploadDirInfo['baseurl']);
+
+            // Сохраняем изменения в локальный файл
+            try {
+                $this->_getSapeArticles()->wp_save_local_db($addedPosts, 'add');
+            } catch (Exception $e) {}
         }
 
-        // Блок обработки существующих статей статей
+        // Блок обработки существующих статей
         if (isset($updateArticles) && is_array($updateArticles) && count($updateArticles) > 0) {
             $updatedPosts = array();
             foreach ($updateArticles as $articleId => $articleInfo) {
@@ -1281,7 +1304,5 @@ class Sape_API_Widget_RTB extends WP_Widget {
 		return $new_instance;
 	}
 }
-
-
 
 $sape_api = new Sape_API();

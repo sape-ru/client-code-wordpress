@@ -10,8 +10,8 @@
  * Подробную информацию по добавлению сайта в систему,
  * установки кода, а так же по всему остальным вопросам
  * Вы можете найти здесь:
- * @link http://help.sape.ru/sape/faq/27
- * @link http://help.sape.ru/articles/faq/1041
+ * @link https://support.sape.ru/l_rus/knowledge_base/category/51114
+ * @link https://support.sape.ru/l_rus/knowledge_base/item/232345
  *
  */
 
@@ -20,7 +20,7 @@
  */
 class SAPE_base
 {
-    protected $_version = '1.5.0 (WP v0.10)';
+    protected $_version = '1.5.3 (WP v0.11)';
 
     protected $_verbose = false;
 
@@ -147,6 +147,7 @@ class SAPE_base
             $this->_host = $_SERVER['HTTP_HOST'];
         }
 
+        $this->_host = mb_strtolower($this->_host, 'UTF-8');
         $this->_host = preg_replace('/^http:\/\//', '', $this->_host);
         $this->_host = preg_replace('/^www\./', '', $this->_host);
 
@@ -1326,7 +1327,8 @@ class SAPE_client extends SAPE_base
         } else {
             $this->_sape_charset = '';
         }
-        if (@array_key_exists($this->_request_uri, $this->_links) && is_array($this->_links[$this->_request_uri])) {
+        if (isset($this->_links) && is_array($this->_links)
+            && @array_key_exists($this->_request_uri, $this->_links) && is_array($this->_links[$this->_request_uri])) {
             $this->_links_page = $this->_links[$this->_request_uri];
         } else {
             if (isset($this->_links['__sape_new_url__']) && strlen($this->_links['__sape_new_url__'])) {
@@ -1336,7 +1338,8 @@ class SAPE_client extends SAPE_base
             }
         }
 
-        if (@array_key_exists($this->_request_uri, $this->_links['__sape_teasers__']) && is_array($this->_links['__sape_teasers__'][$this->_request_uri])) {
+        if (isset($this->_links['__sape_teasers__']) && is_array($this->_links['__sape_teasers__'])
+            && @array_key_exists($this->_request_uri, $this->_links['__sape_teasers__']) && is_array($this->_links['__sape_teasers__'][$this->_request_uri])) {
             $this->_teasers_page = $this->_links['__sape_teasers__'][$this->_request_uri];
         }
 
@@ -1569,7 +1572,7 @@ class SAPE_context extends SAPE_base
                     $sentence = str_replace($real, '((' . $real . ')|(' . $unspec . '))', $sentence);
                 }
                 //Заменяем пробелы на переносы или сущности пробелов
-                $source_sentences[$n] = str_replace(' ', '((\s)|(&nbsp;))+', $sentence);
+                $source_sentences[$n] = str_replace(' ', '((\s)|(&nbsp;)|( ))+', $sentence);
             }
 
             $this->_debug_action_append($source_sentences, 'sentences for replace');
@@ -1797,7 +1800,8 @@ class SAPE_context extends SAPE_base
     protected function _set_data($data)
     {
         $this->_words = $data;
-        if (@array_key_exists($this->_request_uri, $this->_words) && is_array($this->_words[$this->_request_uri])) {
+        if (isset($this->_words) && is_array($this->_words)
+            && @array_key_exists($this->_request_uri, $this->_words) && is_array($this->_words[$this->_request_uri])) {
             $this->_words_page = $this->_words[$this->_request_uri];
         }
 
@@ -2126,7 +2130,7 @@ class SAPE_articles extends SAPE_base
     }
 
     /**
-     * Передача диспенсеру УРЛов размещенных статей,
+     * Передача диспенсеру URL'ов размещенных статей,
      * созданных в режиме интеграции
      *
      * @param $posts
@@ -2629,7 +2633,7 @@ class SAPE_articles extends SAPE_base
     protected function _load_wp_data()
     {
         $this->_db_file = dirname(__FILE__) . '/' . $this->_host . '.' . $this->_save_file_name;
-        $this->_db_file = mb_strtolower($this->_db_file);
+        $this->_db_file = mb_strtolower($this->_db_file, 'UTF-8');
 
         if (!file_exists($this->_db_file)) {
             // Пытаемся создать файл.

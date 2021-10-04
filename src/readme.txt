@@ -6,9 +6,9 @@ Contributors: Sape
 Donate link: https://www.sape.ru/
 Tags:  sape, seo, link, site, teaser, rtb
 Requires at least: 4.2
-Tested up to: 5.4.1
+Tested up to: 5.8.1
 Stable tag: trunk
-Version: 0.10
+Version: 0.11
 Author: Sape.ru
 Author URI: https://www.sape.ru/
 License: GPLv2 or later
@@ -147,4 +147,7 @@ Fix recreating articles
 Fix deleting links in split_data_file mode
 
 ### v 0.10
+Fix duplicate articles
+
+### v 0.11
 Fix duplicate articles
