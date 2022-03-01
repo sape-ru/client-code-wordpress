@@ -2,7 +2,7 @@
 
 ## RU
 
-Плагин Wordpress для sape.ru **[v0.11](https://github.com/sape-ru/client-code-wordpress/blob/v0.11/plugin/saperu-integration-v0.11.zip?raw=true)**
+Плагин Wordpress для sape.ru **[v0.12](https://github.com/sape-ru/client-code-wordpress/blob/v0.11/plugin/saperu-integration-v0.12.zip?raw=true)**
 
 - встроенная версия клиентского кода Sape: 1.5.3
 

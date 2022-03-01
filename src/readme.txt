@@ -116,6 +116,9 @@ Fix split_data_file mode
 Fix recreating articles
 Fix deleting links in split_data_file mode
 
+### v 0.10
+Add translator
+
 ## Changelog
 ### v 0.01
 First version
@@ -151,3 +154,6 @@ Fix duplicate articles
 
 ### v 0.11
 Fix duplicate articles
+
+### v 0.12
+Add translator
