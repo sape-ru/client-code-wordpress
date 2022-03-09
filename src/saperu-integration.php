@@ -258,7 +258,7 @@ class Sape_API {
 
         // let make dir and copy sape's files to uploads/.sape/
         if ( ! wp_mkdir_p( self::_getSapePath() ) ) {
-            $activationFailedMessage = 'Sape: ' . sprintf( __('директория %s не доступна для записи'), '<i>`' . ABSPATH . WPINC . '/upload' . '`</i>' );
+            $activationFailedMessage = sprintf( __('Директория %s не доступна для записи.'), '<i>`' . ABSPATH . WPINC . '/upload' . '`</i>' );
             self::chmod_wrong_on_activation($activationFailedMessage);
         }
 
@@ -272,7 +272,7 @@ class Sape_API {
 
         foreach ($files as $filePathFrom => $filePathTo) {
             if (!copy( $filePathFrom, $filePathTo)) {
-                $activationFailedMessage = 'Sape: ' . sprintf( __('файл %s не доступен для записи'), '<i>`' . $filePathTo . '`</i>');
+                $activationFailedMessage = sprintf( __('Файл %s не доступен для записи.'), '<i>`' . $filePathTo . '`</i>');
                 self::chmod_wrong_on_activation($activationFailedMessage);
             }
         }
@@ -285,7 +285,7 @@ class Sape_API {
         $link        = wp_nonce_url( admin_url( 'plugins.php?action=activate&plugin=' . $path ), 'activate-plugin_' . $path );
         $string      = '';
         $string .= $activationFailedMessage . '.<br/>';
-        $string .= sprintf( __('Исправьте и активируйте плагин %s заново'), '<b>' . $path . '</b>' ) . '.<br/>';
+        $string .= sprintf( __('Исправьте и активируйте плагин %s заново.'), '<b>' . $path . '</b>' ) . '.<br/>';
         $string .= '<a href="' . $link . '" class="edit">' . __( 'Activate' ) . '</a>';
 
         wp_die( $string );
@@ -557,11 +557,11 @@ class Sape_API {
     public function admin_menu() {
         add_menu_page(
             'Sape ' . __( 'Settings' ), // title
-            'Sape API', // menu title
+            __('Монетизация сайта - Sape'), // menu title
             'manage_options', // capability
             'page_sape', // menu slug
             array( &$this, 'page_sape' ), // callback
-            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAa0lEQVQ4T2OUqlr7n4ECwEg1A562BmG4Q7p6HVwMXR4mB3cBSAGyBmTT0OWQ+SgGoDsBZiBRBqBrRtaEz3u0cwGxMUufaCQ6DNDjHVcsIHsPZzrAFwvIFpEVC0S5AD0l4kpk1IsFYuMdXR0AYDBvEZHcuRUAAAAASUVORK5CYII='
+            'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQIAHAAcAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAAQABADAREAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABwYK/8QAIBAAAQUBAQACAwAAAAAAAAAABAIDBQYHCAEACRESE//EABkBAAIDAQAAAAAAAAAAAAAAAAIFAwQHCf/EACcRAAIDAAICAgEDBQAAAAAAAAECAwQFBhESIQAHExUiIzEyQWGB/9oADAMBAAIRAxEAPwDPbxzwxVOhMX6E6Z2TbjcQwLnCUzutW+ZqeVT+16DLWnT35ZqthxFFgZaAQHBDNQphE3aJubAjAf2YGb/sQ77432X5pz23xzb45xfFwk3uRcmh0rVKC3r18LOhqZSwmy82hYhsF7DmdFgqwQSSv0zHxUDvPK1RZopZ5ZfxRQlFYrG0rln78QFBHr17JPQ+H2lWTmHL832Ln7Nq5UOk5qx37Prrl3ayg79m1uq9MDgWn7Hm6cnnvViDvHSBbsfPEGGGsMnjFOxxcqMiKLGY5dblOrp43ItOzc4xBWz9Gjq8GD5+pTtXXsFa2n+sV+nZY40WSuqIjNGyCRIWMyMDtBGkkKBZizoyWenRlXr9yfjP+/R9n330T6+Mv1x6I3lsjoFrq32OSHAWo+uwAEeiaza/3zK9XpakSD05G3NNHjbaMSdDneBqja7a6LKwsmMaYpuSCfSptaX7LzjrRZ1O39aR/YeUBYkkMOnnZ+tkXu4xBLRN+WmyRzJ5iWzUvwzxOidxyKR1JScIXZbhqSeuu0Z45F99hvEMOweugykHs/JX7SNj5y3bruzaDzFGRbVGJpOcw1rtUDQmssruo63B1YMDTtWr2bMoZRSoe82ZsiTEhfRg3fPws18MZ4xxHy39U4vJcDhtTO5TLK19b2nPUqWNA61nKx7Ft5MrIs6ZLG9NQqlYnn8nH9EV2VAfg35YZbDPAB4+KBmCCNZJAv8AJIEH9oZvYH/f8/P/2Q=='
         );
 
         add_submenu_page(
@@ -578,7 +578,7 @@ class Sape_API {
         ?>
       <div class="wrap">
 
-        <h1>Sape API</h1>
+        <h1>Монетизация сайта - Sape</h1>
 
         <form action="options.php" method="post" novalidate="novalidate">
 
@@ -612,24 +612,20 @@ class Sape_API {
         // add sections
         add_settings_section(
             'section__sape_identification', // id
-            __('Идентификационная часть'), // title
+            __('Задайте ваш ключ пользователя'), // title
             function () {
-                _e('Нет необходимости скачивать файлы и архивы или устанавливать что-либо вручную.');
                 echo '<br/>';
-                _e('Плагин всё сделает автоматически. Просто заполните настройки ниже.');
             }, // callback
             'page_sape' // page
         );
 
         add_settings_section(
             'section__sape_parts', // id
-            __('Системы монетизации'), // title
+            __('Форматы монетизации'), // title
             function () {
-                _e('Укажите ниже какие системы заработка активировать.');
+                _e('Активируйте нужные вам форматы монетизации.');
                 echo '<br/>';
-                echo sprintf( __('Плагин отлично работает с фильтром %s.'), '<code>wptexturize</code>' );
                 echo '<br/>';
-                echo sprintf( __('Если вы выведите не все проданные ссылки на странице, то оставшиеся добавятся в футер (подвал) сайта во избежание появления у ссылок статуса %s.'), '<code>ERROR</code>' );
             }, // callback
             'page_sape' // page
         );
@@ -637,7 +633,7 @@ class Sape_API {
         // add fields
         add_settings_field(
             'sape_user', // id
-            '_SAPE_USER', // title
+            __('Ключ Пользователя'), // title
             array( &$this, 'render_settings_field' ), // callback
             'page_sape', // page
             'section__sape_identification', // section
@@ -645,15 +641,16 @@ class Sape_API {
                 'label_for' => 'sape_user',
                 'type'      => 'text',
                 'descr'     =>
-                    __('Это ваш уникальный идентификатор (хеш).') .'<br/>'.
-                    sprintf(__('Можете найти его на сайте %s (реф) кликнув по кнопке %s "добавить площадку" %s'), '<a target="_blank" href="//www.sape.ru/">sape.ru</a>', '<b>', '</b>.<br/>') .
-                    sprintf(__('Будет похож на что-то вроде %s d12d0d074c7ba7f6f78d60e2bb560e3f %s'), '<b>','</b>')
+                    __('Ключ Пользователя - это ваш уникальный идентификатор (хеш).') .'<br/>'.
+                    sprintf(__('Можете найти его на %s странице добавления нового сайта%s в вашем аккаунте.'), '<a target="_blank" href="//www.sape.ru/site.php?act=add#WordPress/">', '</a>') . '<br/>' .
+                    sprintf(__('Ключ Пользователя похож на что-то вроде %s d12d0dx074c7ba7f6f78d60e2bb560e3f %s.'), '<b>','</b>') .' ' .
+                    __('Укажите ваш Ключ Пользователя и плагин всё сделает автоматически (вам не нужно будет загружать файлы или архивы вручную).')
             ) // args
         );
 
         add_settings_field(
             'sape_part_is_client', // id
-            __('Простые ссылки'), // title
+            __('Арендные ссылки'), // title
             array( &$this, 'render_settings_field' ), // callback
             'page_sape', // page
             'section__sape_parts', // section
@@ -661,15 +658,17 @@ class Sape_API {
                 'label_for' => 'sape_part_is_client',
                 'type'      => 'checkbox',
                 'descr'     =>
-                    __('Текстовые и блочные ссылки'). '<br/>' .
-                    sprintf(__('После активации будет доступен как %s виджет %s для вывода ссылок, так и шорткод:'), '<a target="_blank" href="' . admin_url( 'widgets.php' ) . '">', '</a>')
+                    '<br/>' .
+                    sprintf(__('После активации будет доступен как %s виджет%s для вывода ссылок, так и шорткод:'), '<a target="_blank" href="' . admin_url( 'widgets.php' ) . '">', '</a>')
                     .'<br/>
-<code>[sape]</code> -- '. __('вывод всех ссылок в формате текста'). '<br/>
-<code>[sape count=2]</code> --' .__('вывод лишь двух ссылок') .'<br/>
-<code>[sape count=2 block=1]</code> --' .__('вывод ссылок в формате блока') .'<br/>
-<code>[sape count=2 block=1 orientation=1]</code> --' .__('вывод ссылок в формате блока горизонтально'). '<br/>
-<code>[sape]' . __('код другой биржи,') .'html, js[/sape]</code> --' .__('вывод альтернативного текста при отсутствии ссылок'). '<br/>'.
-                    __('Для вывода внутри темы (шаблона) используйте следующий код:'). '<code>' . esc_attr( '<?php echo do_shortcode(\'[sape]\') ?>' ) . '</code>',
+<code>[sape]</code> - '. __('вывод всех ссылок в формате текста'). '<br/>
+<code>[sape count=2]</code> - ' .__('вывод лишь двух ссылок') .'<br/>
+<code>[sape count=2 block=1]</code> - ' .__('вывод ссылок в формате блока') .'<br/>
+<code>[sape count=2 block=1 orientation=1]</code> - ' .__('вывод ссылок в формате блока горизонтально'). '<br/>
+<code>[sape] html, js[/sape]</code> - ' .__('вывод альтернативного текста при отсутствии ссылок.'). '<br/>'.
+                    __('Для вывода внутри темы (шаблона) используйте следующий код:'). '<code>' . esc_attr( '<?php echo do_shortcode(\'[sape]\') ?>' ) . '</code>'. '.<br/>'.
+                    sprintf( __('Если вы видите не все проданные ссылки на странице, то оставшиеся добавятся в футер (подвал) сайта во избежание появления у ссылок статуса %s.'), '<code>ERROR</code>' )
+            ,
             ) // args
         );
 
@@ -682,20 +681,20 @@ class Sape_API {
             array(
                 'label_for' => 'sape_part_is_context',
                 'type'      => 'checkbox',
-                'descr'     => __('Ссылки внутри записей.'),
+                'descr'     => __('Ссылки, размещенные непосредственно внутри существующего контента страниц.'),
             ) // args
         );
 
         add_settings_field(
             'sape_part_is_articles', // id
-            __('Размещение статей'), // title
+            __('Арендные статьи'), // title
             array( &$this, 'render_settings_field' ), // callback
             'page_sape', // page
             'section__sape_parts', // section
             array(
                 'label_for' => 'sape_part_is_articles',
                 'type'      => 'checkbox',
-                'descr'     => __('Вывод статей Sape с анонсами на сайте.'),
+                'descr'     => __('Размещение статей и анонсов для статей на сайте по моделе арендной оплаты.'),
             ) // args
         );
 
@@ -708,7 +707,7 @@ class Sape_API {
             array(
                 'label_for' => 'sape_part_is_articles_post_author',
                 'type'      => 'select',
-                'descr'     => __('Пользователь, от имени которого будут создаваться статьи'),
+                'descr'     => __('Пользователь, от имени которого будут создаваться статьи.'),
                 'options' => $this-> _getArticleWpUsersOptions()
             ) // args
         );
@@ -722,14 +721,14 @@ class Sape_API {
             array(
                 'label_for' => 'sape_part_is_articles_post_category',
                 'type'      => 'select',
-                'descr'     => __('Рубрика, в которой будут создаваться статьи'),
+                'descr'     => __('Рубрика, в которой будут создаваться статьи.'),
                 'options' => $this-> _getArticleWpСategoryOptions()
             ) // args
         );
 
         add_settings_field(
             'sape_part_is_tizer', // id
-            __('Размещение тизеров'), // title
+            __('Ссылки-тизеры'), // title
             array( &$this, 'render_settings_field' ), // callback
             'page_sape', // page
             'section__sape_parts', // section
@@ -737,11 +736,11 @@ class Sape_API {
                 'label_for' => 'sape_part_is_tizer',
                 'type'      => 'checkbox',
                 'descr'     =>
-                    __('Тизерные блоки.'). '<br/>'.
-                    sprintf(__('После активации будет доступен как %s виджет %s для вывода тизерных блоков, так и шорткод:%s'), '<a target="_blank" href="' . admin_url( 'widgets.php' ) . '">', '</a>', '<br/>')
-                    .'<code>[sape_tizer id=1]</code> --' .__('вывод тизерного блока, с ID 1') .'<br/>
-<code>[sape_tizer]' .__('код другой биржи,') . 'html, js[/sape_tizer]</code> --' .__('вывод альтернативного текста при отсутствии тизерного блока.') .'<br/>'.
-                    __('Для вывода внутри темы (шаблона) используйте следующий код:') .'<code>' . esc_attr( '<?php echo do_shortcode(\'[sape_tizer id=ID_БЛОКА]\') ?>' ) . '</code>',
+                    __('Ссылки размещаемые в формате тизерных блоков.'). '<br/>'.
+                    sprintf(__('После активации будет доступен как %s виджет%s для вывода тизерных блоков, так и шорткод:%s'), '<a target="_blank" href="' . admin_url( 'widgets.php' ) . '">', '</a>', '<br/>')
+                    .'<code>[sape_tizer id=1]</code> - ' .__('вывод тизерного блока, с ID 1') .'<br/>
+<code>[sape_tizer] html, js[/sape_tizer]</code> - ' .__('вывод альтернативного текста при отсутствии тизерного блока.') .'<br/>'.
+                    __('Для вывода внутри темы (шаблона) используйте следующий код:') .'<code>' . esc_attr( '<?php echo do_shortcode(\'[sape_tizer id=ID_БЛОКА]\') ?>' ) . '</code>.',
             ) // args
         );
 
@@ -754,14 +753,14 @@ class Sape_API {
             array(
                 'label_for' => 'sape_part_is_tizer_image',
                 'type'      => 'select',
-                'descr'     => __('Имя файла, показывающего картинки тизеров'),
+                'descr'     => __('Имя файла, показывающего картинки тизеров.'),
                 'options' => $this-> _getTizerImageOptions()
             ) // args
         );
 
         add_settings_field(
             'sape_part_is_rtb', // id
-            __('Размещение RTB блоков'), // title
+            __('Медийная реклама'), // title
             array( &$this, 'render_settings_field' ), // callback
             'page_sape', // page
             'section__sape_parts', // section
@@ -769,9 +768,8 @@ class Sape_API {
                 'label_for' => 'sape_part_is_rtb',
                 'type'      => 'checkbox',
                 'descr'     =>
-                    __('RTB блоки.') .'<br/>'.
-                    sprintf(__('После активации будет доступен как %s виджет %s для вывода RTB блоков'), '<a target="_blank" href="' . admin_url( 'widgets.php' ) .'">', '</a>').
-                    __('Для вывода внутри темы (шаблона) используйте следующий код, полученные в RTB.SAPE'),
+                    __('Если включен - на вашем сайте будут показываться медийные баннеры по технологии RTB, заработок по CPM модели.') .'<br/>'.
+                    sprintf(__('После активации будет доступен %s виджет%s для вывода RTB блоков.'), '<a target="_blank" href="' . admin_url( 'widgets.php' ) .'">', '</a>'),
             ) // args
         );
     }
@@ -1164,7 +1162,7 @@ class Sape_API_Widget_Tizer extends WP_Widget {
             'sape_tizer',
             'Sape тизеры',
             array(
-                'description' => __('Вывод тизеров блоков Sape на сайте. Вы можете использовать несколько виджетов, чтобы отобразить в нескольких местах.'),
+                'description' => __('Вывод Тизерных Блоков на сайте. Вы можете использовать несколько виджетов, чтобы отобразить в нескольких местах.'),
                 'classname'   => 'advert_tizer',
             )
         );
@@ -1245,7 +1243,7 @@ class Sape_API_Widget_RTB extends WP_Widget {
             'sape_rtb',
             'Sape RTB',
             array(
-                'description' => __('Вывод RTB блоков Sape на сайте. Вы можете использовать несколько виджетов, чтобы отобразить в нескольких местах.'),
+                'description' => __('Вывод Медийной рекламы на сайте. Вы можете использовать несколько виджетов, чтобы отобразить в нескольких местах.'),
                 'classname'   => 'advert_rtb',
             )
         );

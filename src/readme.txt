@@ -8,7 +8,7 @@ Tags:  sape, seo, link, site, teaser, rtb
 Requires at least: 4.2
 Tested up to: 5.8.1
 Stable tag: trunk
-Version: 0.11
+Version: 0.12
 Author: Sape.ru
 Author URI: https://www.sape.ru/
 License: GPLv2 or later
@@ -16,71 +16,67 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Плагин для автоматической установки кода системы Sape на сайт вебмастера
 
+## Описание
+
+Плагин для монетизации сайта от [Sape](https://www.sape.ru/). Плагин поддерживает следующие форматы монетизации:
+
+- Арендные ссылки
+- Сквозные арендные ссылки
+- Контекстные арендные ссылки
+- Тизерные блоки (ссылки в формате тизеров)
+- Арендные статьи
+- Медийная реклама (RTB блоки)
+
+## Установка
+**Важно!** Если Вы до этого устанавливали код системы и папки вручную, то удалите их!
+
+1. В панеле администратора WordPress переходим в раздел "Плагины" и нажимаем "Добавить новый".
+2. В поле поиска вводим "sape", находим наш плагин и нажимаем кнопку "Установить". После установки нажимаем "Активировать".
+3. После активации плагина переходим в его настройки и в поле "Ключ Пользователя" указываем свой идентификатор.
+4. Отмечаем галочкой форматы монетизации, которые будем размещать на сайте. Сохраняем настройки.
+5. После настройки переходим в раздел "Внешний вид" -> "Виджеты". Завершающий шаг - вам нужно разместить в нужных местах вашей темы (шаблона) форматы монетизации, которые вы подключили на прошлом шаге. Для этого разместите виджеты, например в Sidebar или Footer
+
+## Настройка виджета
+Все настройки необязательные - все будет работать с настройками по умолчанию. Настройка виджета рассмотрим на примере виджета "Sape: Арендные ссылки"
+
+- Задайте заголовок (необязательно)
+- Задайте количество ссылок, которое будет выводиться в блоке (если оставить пустым - будут выводиться все купленные ссылки)
+- Если вы хотите выводить ссылки в формате блоков - укажите ```Формат=Блок``` и задайте как будет отображаться блок: вертикально или горизонтально
+- Нажмите кнопку "Сохранить"
+
+
+
+Plugin from Sape to monetize your website
+
 ## Description
 
-Плагин для автоматической установки кода системы [Sape](https://www.sape.ru/) на сайт вебмастера
+Plugin for site monetization from [Sape](https://www.sape.ru/). The plugin supports the following monetization formats:
 
-Поддержка функций
+- Rental Links
+- Sidewide rental links
+- Contextual rental links
+- Teaser blocks (links in teaser format)
+- Rental articles
+- Display advertising (RTB blocks)
 
-- арендные ссылки (обычный и блочный режим вывода)
-- пакеты умных сквозных ссылок
-- контекстные ссылки
-- тизерные размещения
-- блоки rtb.sape
-- статьи
+##Installation
 
-## Installation
-Установка кода на CMS Wordpress с помощью плагина.
+**Important!** If you previously set the system code and folders manually, then delete them!
 
-! Важно ! Если Вы до этого устанавливали код системы и папки вручную, то удалите их!
+1. In the WordPress admin panel, go to the "Plugins" section and click "Add New".
+2. In the search field, enter "sape", find our plugin and click the "Install" button. After installation, click "Activate".
+3. After activating the plugin, go to its settings and enter your ID in the "User Key" field.
+4. Check off the monetization formats that we will post on the site. Save the settings.
+5. After setting, go to the "Outside view" -> "Widgets" section. The final step - you need to place in the right places of your topic (template) the monetization formats that you connected on the previous step. To do this, place widgets, for example, in Sidebar or Footer
 
-1. Загрузите архив с плагином с сайта;
-2. Распакуйте архив на компьютере в папку «Sape.ru integration»;
-3. Распакованные папки и файлы «sape», «lib», saperu-integration.php скопируйте на хостинг в папку расположенную по следующими пути: название сайта ? public_html ? wp-content ? plugins ? “Sape wordpress plugin”.
-4. После выполнения предыдущих шагов заходим в «Панель администратора» ? «Плагины» и активируем плагин «Sape.ru integration».
-5. После активации плагина заходим в его настройки в поле «_SAPE_USER» указываем свой идентификатор — screenshot-1;
-6. Отмечаем галочкой типы ссылок, которые будем размещать на сайте — screenshot-2
-Сейчас для размещения  в автоматическом режиме доступны почти все виды ссылок: «Простые ссылки», «Контекстные ссылки», «Размещение статей», Размещение тизеров.
-Если Вы планируете размещать тизерные ссылки, то необходимо задать название файла для изображения тизеров — screenshot-3;
-7. После настройки и активации плагина переходим в раздел «Внешний вид» ? «Виджеты» и выбираем виджеты, с типами ссылками, которые Вы хотите размещать на сайте. Виджеты имеют следующие названия: «Sape: Ссылки», «Sape тизеры», «Sape Articles», «Sape RTB».
-8. Добавляем виджеты в «Sidebar»
-= Setting widgets =
-Настройка виджета «Sape: Ссылки» - screenshot-4:
-	- Задайте заголовок блока(если есть такая необходимость)
-	- Задайте количество ссылок, которое будет выводиться в блоке
-	- Выберите формат в котором будут размещаться ссылки. Доступны следующие форматы для отображения ссылок: в виде текста, в виде блоков — screenshot-5`
-	- Выберите, как будет отображаться блок: вертикально или горизонтально — screenshot-6
-После, того как Вы выбрали необходимые опции нажмите в кнопку виджете «Сохранить».
+### Widget setup
+All settings are optional - everything will work with the default settings. Let's consider setting the widget using the example of "Sape: Rental Links" widget
 
-Настройка виджета «Sape тизеры» - screenshot-7:
-	- Задайте заголовок блока(если есть такая необходимость)
-	- Укажите ID тизерного блока, о том как создать тизерный блок для сайта Вы можете прочитать в разделе http://help.sape.ru/sape/faq/1677
-После, того как Вы выбрали необходимые опции нажмите в кнопку виджете «Сохранить».
+- Set a title (optional)
+- Set the number of links that will be displayed in the block (if left empty, all purchased links will be displayed)
+- If you want to display links in block format - specify ```Format=Block``` and set how the block will be displayed: vertically or horizontally
+- Click "Save" button
 
-Настройка виджета «Sape RTB»:
-- Задайте заголовок блока(если есть такая необходимость)
-- В окне «Код RTB блока» разместите код, который имеет следующий вид:
-
-Код для размещения формируется в разделе «RTB» - https://rtb.sape.ru/wm/
-Блок в конечном итоге должен иметь следующий вид — screenshot-8
-
-Настройка виджета «Sape Articles»:
-	- Задайте заголовок блока(если есть такая необходимость)
-	- Задайте количество анонсов, которое будет отображаться на странице.
-	- Сохраните изменения
-
-Затем Вам необходимо произвести необходимые настройки в разделе «Статьи» - https://articles.sape.ru/wm/sites/
-
-## Screenshots
-
-1. screenshot-1
-2. screenshot-2
-3. screenshot-3
-4. screenshot-4
-5. screenshot-5
-6. screenshot-6
-7. screenshot-7
-8. screenshot-8
 
 ## Frequently Asked Questions
 FAQ
