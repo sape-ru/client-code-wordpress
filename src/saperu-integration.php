@@ -3,7 +3,7 @@
 Plugin Name: Sape.ru integration
 Plugin URI: https://github.com/sape-ru/client-code-wordpress/releases
 Description: Plugin for Sape.ru webmaster services integration
-Version: 0.13
+Version: 0.14
 Author: Sape.ru
 Author URI: http://www.sape.ru/
 License: GPLv2 or later
@@ -75,6 +75,12 @@ class Sape_API {
         // updrage
         add_action('upgrader_process_complete', array(&$this, 'upgrade'), 10, 2);
 
+        //
+        add_action( 'plugins_loaded', 'true_load_plugin_textdomain' );
+        function true_load_plugin_textdomain() {
+            load_plugin_textdomain( 'sapeTranslate', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+        }
+
         // _SAPE_USER
         if ( ! defined( '_SAPE_USER' ) ) {
             define( '_SAPE_USER', get_option( 'sape_user' ) );
@@ -83,9 +89,9 @@ class Sape_API {
                 add_action( 'admin_init', function () {
                     add_action( 'admin_notices', function () {
                         echo '<div class="update-nag"><p>';
-                        echo sprintf( __('Константа %s уже определена ранее!'), '<code>_SAPE_USER</code>' );
+                        echo sprintf( __('Константа %s уже определена ранее!', 'sapeTranslate'), '<code>_SAPE_USER</code>' );
                         echo ' ';
-                        echo sprintf( __('Настройки плагина %s не применены!'), '<code>Sape.ru integration</code>' );
+                        echo sprintf( __('Настройки плагина %s не применены!', 'sapeTranslate'), '<code>Sape.ru integration</code>' );
                         echo '</p></div>';
                     } );
                 } );
@@ -258,7 +264,7 @@ class Sape_API {
 
         // let make dir and copy sape's files to uploads/.sape/
         if ( ! wp_mkdir_p( self::_getSapePath() ) ) {
-            $activationFailedMessage = sprintf( __('Директория %s не доступна для записи.'), '<i>`' . ABSPATH . WPINC . '/upload' . '`</i>' );
+            $activationFailedMessage = sprintf( __('Директория %s не доступна для записи.', 'sapeTranslate'), '<i>`' . ABSPATH . WPINC . '/upload' . '`</i>' );
             self::chmod_wrong_on_activation($activationFailedMessage);
         }
 
@@ -272,7 +278,7 @@ class Sape_API {
 
         foreach ($files as $filePathFrom => $filePathTo) {
             if (!copy( $filePathFrom, $filePathTo)) {
-                $activationFailedMessage = sprintf( __('Файл %s не доступен для записи.'), '<i>`' . $filePathTo . '`</i>');
+                $activationFailedMessage = sprintf( __('Файл %s не доступен для записи.', 'sapeTranslate'), '<i>`' . $filePathTo . '`</i>');
                 self::chmod_wrong_on_activation($activationFailedMessage);
             }
         }
@@ -285,8 +291,8 @@ class Sape_API {
         $link        = wp_nonce_url( admin_url( 'plugins.php?action=activate&plugin=' . $path ), 'activate-plugin_' . $path );
         $string      = '';
         $string .= $activationFailedMessage . '.<br/>';
-        $string .= sprintf( __('Исправьте и активируйте плагин %s заново.'), '<b>' . $path . '</b>' ) . '.<br/>';
-        $string .= '<a href="' . $link . '" class="edit">' . __( 'Activate' ) . '</a>';
+        $string .= sprintf( __('Исправьте и активируйте плагин %s заново.', 'sapeTranslate'), '<b>' . $path . '</b>' ) . '.<br/>';
+        $string .= '<a href="' . $link . '" class="edit">' . __( 'Активировать', 'sapeTranslate') . '</a>';
 
         wp_die( $string );
     }
@@ -294,7 +300,7 @@ class Sape_API {
     public static function chmod_wrong_on_save_options($saveFailedMessage) {
         $string      = '';
         $string .= $saveFailedMessage . '<br/>';
-        $string .= sprintf(__('или исправить права доступа и %s настроить %s плагин заново.'), '<a href="admin.php?page=page_sape">', '</a>');
+        $string .= sprintf(__('или исправить права доступа и %s настроить %s плагин заново.', 'sapeTranslate'), '<a href="admin.php?page=page_sape">', '</a>');
 
         wp_die( $string );
     }
@@ -538,7 +544,7 @@ class Sape_API {
 
     public function plugin_action_links( $links ) {
         unset( $links['edit'] );
-        $settings_link = '<a href="admin.php?page=page_sape">' . __( 'Settings' ) . '</a>';
+        $settings_link = '<a href="admin.php?page=page_sape">' . __('Настройки', 'sapeTranslate') . '</a>';
         array_unshift( $links, $settings_link );
 
         return $links;
@@ -546,7 +552,7 @@ class Sape_API {
 
     public function plugin_row_meta( $links, $file ) {
         if ( $file == $this->_plugin_basename ) {
-            $settings_link = '<a href="admin.php?page=page_sape">' . __( 'Settings' ) . '</a>';
+            $settings_link = '<a href="admin.php?page=page_sape">' . __('Настройки', 'sapeTranslate') . '</a>';
             $links[]       = $settings_link;
             $links[]       = 'Code is poetry!';
         }
@@ -556,8 +562,8 @@ class Sape_API {
 
     public function admin_menu() {
         add_menu_page(
-            'Sape ' . __( 'Settings' ), // title
-            __('Монетизация сайта - Sape'), // menu title
+            'Sape ' . __( 'Настройки', 'sapeTranslate'), // title
+            __('Монетизация сайта - Sape', 'sapeTranslate'), // menu title
             'manage_options', // capability
             'page_sape', // menu slug
             array( &$this, 'page_sape' ), // callback
@@ -566,8 +572,8 @@ class Sape_API {
 
         add_submenu_page(
             'page_sape',
-            'Sape ' . __( 'Settings' ), // title
-            __( 'Settings' ), // menu title
+            'Sape ' . __( 'Настройки', 'sapeTranslate' ), // title
+            __( 'Настройки', 'sapeTranslate'), // menu title
             'manage_options', // capability
             'page_sape', // menu slug
             array( &$this, 'page_sape' ) // callback
@@ -578,7 +584,7 @@ class Sape_API {
         ?>
       <div class="wrap">
 
-        <h1>Монетизация сайта - Sape</h1>
+        <h1><?php _e('Монетизация сайта - Sape', 'sapeTranslate') ?></h1>
 
         <form action="options.php" method="post" novalidate="novalidate">
 
@@ -612,7 +618,7 @@ class Sape_API {
         // add sections
         add_settings_section(
             'section__sape_identification', // id
-            __('Задайте ваш ключ пользователя'), // title
+            __('Задайте ваш ключ пользователя', 'sapeTranslate'), // title
             function () {
                 echo '<br/>';
             }, // callback
@@ -621,9 +627,9 @@ class Sape_API {
 
         add_settings_section(
             'section__sape_parts', // id
-            __('Форматы монетизации'), // title
+            __('Форматы монетизации', 'sapeTranslate'), // title
             function () {
-                _e('Активируйте нужные вам форматы монетизации.');
+                _e('Активируйте нужные вам форматы монетизации.', 'sapeTranslate');
                 echo '<br/>';
                 echo '<br/>';
             }, // callback
@@ -633,7 +639,7 @@ class Sape_API {
         // add fields
         add_settings_field(
             'sape_user', // id
-            __('Ключ Пользователя'), // title
+            __('Ключ Пользователя', 'sapeTranslate'), // title
             array( &$this, 'render_settings_field' ), // callback
             'page_sape', // page
             'section__sape_identification', // section
@@ -641,16 +647,16 @@ class Sape_API {
                 'label_for' => 'sape_user',
                 'type'      => 'text',
                 'descr'     =>
-                    __('Ключ Пользователя - это ваш уникальный идентификатор (хеш).') .'<br/>'.
-                    sprintf(__('Можете найти его на %s странице добавления нового сайта%s в вашем аккаунте.'), '<a target="_blank" href="//www.sape.ru/site.php?act=add#WordPress/">', '</a>') . '<br/>' .
-                    sprintf(__('Ключ Пользователя похож на что-то вроде %s d12d0dx074c7ba7f6f78d60e2bb560e3f %s.'), '<b>','</b>') .' ' .
-                    __('Укажите ваш Ключ Пользователя и плагин всё сделает автоматически (вам не нужно будет загружать файлы или архивы вручную).')
+                    __('Ключ Пользователя - это ваш уникальный идентификатор (хеш).', 'sapeTranslate') .'<br/>'.
+                    sprintf(__('Можете найти его на %s странице добавления нового сайта%s в вашем аккаунте.', 'sapeTranslate'), '<a target="_blank" href="//www.sape.ru/site.php?act=add#WordPress/">', '</a>') . '<br/>' .
+                    sprintf(__('Ключ Пользователя похож на что-то вроде %s d12d0dx074c7ba7f6f78d60e2bb560e3f %s.', 'sapeTranslate'), '<b>','</b>') .' ' .
+                    __('Укажите ваш Ключ Пользователя и плагин всё сделает автоматически (вам не нужно будет загружать файлы или архивы вручную).', 'sapeTranslate')
             ) // args
         );
 
         add_settings_field(
             'sape_part_is_client', // id
-            __('Арендные ссылки'), // title
+            __('Арендные ссылки', 'sapeTranslate'), // title
             array( &$this, 'render_settings_field' ), // callback
             'page_sape', // page
             'section__sape_parts', // section
@@ -659,42 +665,42 @@ class Sape_API {
                 'type'      => 'checkbox',
                 'descr'     =>
                     '<br/>' .
-                    sprintf(__('После активации будет доступен как %s виджет%s для вывода ссылок, так и шорткод:'), '<a target="_blank" href="' . admin_url( 'widgets.php' ) . '">', '</a>')
+                    sprintf(__('После активации будет доступен как %s виджет%s для вывода ссылок, так и шорткод:', 'sapeTranslate'), '<a target="_blank" href="' . admin_url( 'widgets.php' ) . '">', '</a>')
                     .'<br/>
-<code>[sape]</code> - '. __('вывод всех ссылок в формате текста'). '<br/>
-<code>[sape count=2]</code> - ' .__('вывод лишь двух ссылок') .'<br/>
-<code>[sape count=2 block=1]</code> - ' .__('вывод ссылок в формате блока') .'<br/>
-<code>[sape count=2 block=1 orientation=1]</code> - ' .__('вывод ссылок в формате блока горизонтально'). '<br/>
-<code>[sape] html, js[/sape]</code> - ' .__('вывод альтернативного текста при отсутствии ссылок.'). '<br/>'.
-                    __('Для вывода внутри темы (шаблона) используйте следующий код:'). '<code>' . esc_attr( '<?php echo do_shortcode(\'[sape]\') ?>' ) . '</code>'. '.<br/>'.
-                    sprintf( __('Если вы видите не все проданные ссылки на странице, то оставшиеся добавятся в футер (подвал) сайта во избежание появления у ссылок статуса %s.'), '<code>ERROR</code>' )
+<code>[sape]</code> - '. __('вывод всех ссылок в формате текста', 'sapeTranslate'). '<br/>
+<code>[sape count=2]</code> - ' .__('вывод лишь двух ссылок', 'sapeTranslate') .'<br/>
+<code>[sape count=2 block=1]</code> - ' .__('вывод ссылок в формате блока', 'sapeTranslate') .'<br/>
+<code>[sape count=2 block=1 orientation=1]</code> - ' .__('вывод ссылок в формате блока горизонтально', 'sapeTranslate'). '<br/>
+<code>[sape] html, js[/sape]</code> - ' .__('вывод альтернативного текста при отсутствии ссылок.', 'sapeTranslate'). '<br/>'.
+                    __('Для вывода внутри темы (шаблона) используйте следующий код:', 'sapeTranslate'). '<code>' . esc_attr( '<?php echo do_shortcode(\'[sape]\') ?>' ) . '</code>'. '.<br/>'.
+                    sprintf( __('Если вы видите не все проданные ссылки на странице, то оставшиеся добавятся в футер (подвал) сайта во избежание появления у ссылок статуса %s.', 'sapeTranslate'), '<code>ERROR</code>' )
             ,
             ) // args
         );
 
         add_settings_field(
             'sape_part_is_context', // id
-            'Контекстные ссылки', // title
+            __('Контекстные ссылки', 'sapeTranslate'), // title
             array( &$this, 'render_settings_field' ), // callback
             'page_sape', // page
             'section__sape_parts', // section
             array(
                 'label_for' => 'sape_part_is_context',
                 'type'      => 'checkbox',
-                'descr'     => __('Ссылки, размещенные непосредственно внутри существующего контента страниц.'),
+                'descr'     => __('Ссылки, размещенные непосредственно внутри существующего контента страниц.', 'sapeTranslate'),
             ) // args
         );
 
         add_settings_field(
             'sape_part_is_articles', // id
-            __('Арендные статьи'), // title
+            __('Арендные статьи', 'sapeTranslate'), // title
             array( &$this, 'render_settings_field' ), // callback
             'page_sape', // page
             'section__sape_parts', // section
             array(
                 'label_for' => 'sape_part_is_articles',
                 'type'      => 'checkbox',
-                'descr'     => __('Размещение статей и анонсов для статей на сайте по моделе арендной оплаты.'),
+                'descr'     => __('Размещение статей и анонсов для статей на сайте по моделе арендной оплаты.', 'sapeTranslate'),
             ) // args
         );
 
@@ -707,7 +713,7 @@ class Sape_API {
             array(
                 'label_for' => 'sape_part_is_articles_post_author',
                 'type'      => 'select',
-                'descr'     => __('Пользователь, от имени которого будут создаваться статьи.'),
+                'descr'     => __('Пользователь, от имени которого будут создаваться статьи.', 'sapeTranslate'),
                 'options' => $this-> _getArticleWpUsersOptions()
             ) // args
         );
@@ -721,14 +727,14 @@ class Sape_API {
             array(
                 'label_for' => 'sape_part_is_articles_post_category',
                 'type'      => 'select',
-                'descr'     => __('Рубрика, в которой будут создаваться статьи.'),
+                'descr'     => __('Рубрика, в которой будут создаваться статьи.', 'sapeTranslate'),
                 'options' => $this-> _getArticleWpСategoryOptions()
             ) // args
         );
 
         add_settings_field(
             'sape_part_is_tizer', // id
-            __('Ссылки-тизеры'), // title
+            __('Ссылки-тизеры', 'sapeTranslate'), // title
             array( &$this, 'render_settings_field' ), // callback
             'page_sape', // page
             'section__sape_parts', // section
@@ -736,31 +742,31 @@ class Sape_API {
                 'label_for' => 'sape_part_is_tizer',
                 'type'      => 'checkbox',
                 'descr'     =>
-                    __('Ссылки размещаемые в формате тизерных блоков.'). '<br/>'.
-                    sprintf(__('После активации будет доступен как %s виджет%s для вывода тизерных блоков, так и шорткод:%s'), '<a target="_blank" href="' . admin_url( 'widgets.php' ) . '">', '</a>', '<br/>')
-                    .'<code>[sape_tizer id=1]</code> - ' .__('вывод тизерного блока, с ID 1') .'<br/>
-<code>[sape_tizer] html, js[/sape_tizer]</code> - ' .__('вывод альтернативного текста при отсутствии тизерного блока.') .'<br/>'.
-                    __('Для вывода внутри темы (шаблона) используйте следующий код:') .'<code>' . esc_attr( '<?php echo do_shortcode(\'[sape_tizer id=ID_БЛОКА]\') ?>' ) . '</code>.',
+                    __('Ссылки размещаемые в формате тизерных блоков.', 'sapeTranslate'). '<br/>'.
+                    sprintf(__('После активации будет доступен как %s виджет%s для вывода тизерных блоков, так и шорткод:%s', 'sapeTranslate'), '<a target="_blank" href="' . admin_url( 'widgets.php' ) . '">', '</a>', '<br/>')
+                    .'<code>[sape_tizer id=1]</code> - ' .__('вывод тизерного блока, с ID 1', 'sapeTranslate') .'<br/>
+<code>[sape_tizer] html, js[/sape_tizer]</code> - ' .__('вывод альтернативного текста при отсутствии тизерного блока.', 'sapeTranslate') .'<br/>'.
+                    __('Для вывода внутри темы (шаблона) используйте следующий код:', 'sapeTranslate') .'<code>' . esc_attr( '<?php echo do_shortcode(\'[sape_tizer id=ID_БЛОКА]\') ?>' ) . '</code>.',
             ) // args
         );
 
         add_settings_field(
             'sape_part_is_tizer_image', // id
-            __('Файл изображения тизеров'), // title
+            __('Файл изображения тизеров', 'sapeTranslate'), // title
             array( &$this, 'render_settings_field' ), // callback
             'page_sape', // page
             'section__sape_parts', // section
             array(
                 'label_for' => 'sape_part_is_tizer_image',
                 'type'      => 'select',
-                'descr'     => __('Имя файла, показывающего картинки тизеров.'),
+                'descr'     => __('Имя файла, показывающего картинки тизеров.', 'sapeTranslate'),
                 'options' => $this-> _getTizerImageOptions()
             ) // args
         );
 
         add_settings_field(
             'sape_part_is_rtb', // id
-            __('Медийная реклама'), // title
+            __('Медийная реклама', 'sapeTranslate'), // title
             array( &$this, 'render_settings_field' ), // callback
             'page_sape', // page
             'section__sape_parts', // section
@@ -768,8 +774,8 @@ class Sape_API {
                 'label_for' => 'sape_part_is_rtb',
                 'type'      => 'checkbox',
                 'descr'     =>
-                    __('Если включен - на вашем сайте будут показываться медийные баннеры по технологии RTB, заработок по CPM модели.') .'<br/>'.
-                    sprintf(__('После активации будет доступен %s виджет%s для вывода RTB блоков.'), '<a target="_blank" href="' . admin_url( 'widgets.php' ) .'">', '</a>'),
+                    __('Если включен - на вашем сайте будут показываться медийные баннеры по технологии RTB, заработок по CPM модели.', 'sapeTranslate') .'<br/>'.
+                    sprintf(__('После активации будет доступен %s виджет%s для вывода RTB блоков.', 'sapeTranslate'), '<a target="_blank" href="' . admin_url( 'widgets.php' ) .'">', '</a>'),
             ) // args
         );
     }
@@ -787,8 +793,8 @@ class Sape_API {
                 if (!file_put_contents($fileName, $data)) {
                     $userData = file_get_contents($fileName);
                     if ($userData !== $data) {
-                        $message = 'Sape: ' . sprintf( __('папка %s не доступна для записи.'), '<i>`' . $_SERVER['DOCUMENT_ROOT'] . '`</i>');
-                        $message .= '<p>' .sprintf(__('Вы можете создать файл %s вручную с содержимым:'), '<i>`' . $fileName . '`</i>') .'</p>';
+                        $message = 'Sape: ' . sprintf( __('папка %s не доступна для записи.', 'sapeTranslate'), '<i>`' . $_SERVER['DOCUMENT_ROOT'] . '`</i>');
+                        $message .= '<p>' .sprintf(__('Вы можете создать файл %s вручную с содержимым:', 'sapeTranslate'), '<i>`' . $fileName . '`</i>') .'</p>';
                         $message .= '<p>' . htmlentities($data) . '</p>';
                         self::chmod_wrong_on_save_options($message);
 
@@ -811,8 +817,8 @@ class Sape_API {
             if (!file_put_contents($fileName, $data)) {
                 $userData = file_get_contents($fileName);
                 if ($userData !== $data) {
-                    $message = 'Sape: ' . sprintf( __('папка %s не доступна для записи.'), '<i>`' . $_SERVER['DOCUMENT_ROOT'] . '`</i>');
-                    $message .= '<p>' .sprintf(__('Вы можете создать файл %s вручную с содержимым:'), '<i>`' . $fileName . '`</i>') .'</p>';
+                    $message = 'Sape: ' . sprintf( __('папка %s не доступна для записи.', 'sapeTranslate'), '<i>`' . $_SERVER['DOCUMENT_ROOT'] . '`</i>');
+                    $message .= '<p>' .sprintf(__('Вы можете создать файл %s вручную с содержимым:', 'sapeTranslate'), '<i>`' . $fileName . '`</i>') .'</p>';
                     $message .= '<p>' . htmlentities($data) . '</p>';
                     self::chmod_wrong_on_save_options($message);
                 }
@@ -934,7 +940,7 @@ class Sape_API {
                 $checked = checked( '1', get_option( $id ), false );
                 echo '<label>';
                 echo "<input name=\"{$id}\" type=\"checkbox\" id=\"{$id}\" value=\"1\" {$checked} />\n";
-                echo __( 'Activate' );
+                echo __( 'Активировать', 'sapeTranslate');
                 echo '</label>';
                 break;
             case 'select':
@@ -964,7 +970,7 @@ class Sape_API_Widget_Links extends WP_Widget {
             'sape_links',
             'Sape Ссылки',
             array(
-                'description' => __('Вывод ссылок Sape на сайте. Вы можете использовать несколько виджетов, чтобы отобразить ссылки в нескольких местах.'),
+                'description' => __('Вывод ссылок Sape на сайте. Вы можете использовать несколько виджетов, чтобы отобразить ссылки в нескольких местах.', 'sapeTranslate'),
                 'classname'   => '',
             )
         );
@@ -1005,7 +1011,7 @@ class Sape_API_Widget_Links extends WP_Widget {
 
       <p>
         <label for="<?php echo $this->get_field_id( 'title' ); ?>">
-            <?php _e( 'Title:' ); ?>
+            <?php _e( 'Заглавие:', 'sapeTranslate'); ?>
         </label>
         <input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>"
                name="<?php echo $this->get_field_name( 'title' ); ?>"
@@ -1015,7 +1021,7 @@ class Sape_API_Widget_Links extends WP_Widget {
 
       <p>
         <label for="<?php echo $this->get_field_id( 'count' ); ?>">
-            <?php _e('Количество ссылок:'); ?>
+            <?php _e('Количество ссылок:', 'sapeTranslate'); ?>
         </label>
         <input class="widefat" id="<?php echo $this->get_field_id( 'count' ); ?>"
                name="<?php echo $this->get_field_name( 'count' ); ?>"
@@ -1025,37 +1031,37 @@ class Sape_API_Widget_Links extends WP_Widget {
 
       <p>
         <label for="<?php echo $this->get_field_id( 'block' ); ?>">
-            <?php _e('Формат:'); ?>
+            <?php _e('Формат:', 'sapeTranslate'); ?>
         </label>
         <select class="widefat" id="<?php echo $this->get_field_id( 'block' ); ?>"
                 name="<?php echo $this->get_field_name( 'block' ); ?>">
           <option value="0"<?php selected( $instance['block'], '0' ); ?>>
-              <?php _e('Текст'); ?>
+              <?php _e('Текст', 'sapeTranslate'); ?>
           </option>
           <option value="1"<?php selected( $instance['block'], '1' ); ?>>
-              <?php _e('Блок'); ?>
+              <?php _e('Блок', 'sapeTranslate'); ?>
           </option>
         </select>
       </p>
 
       <p>
         <label for="<?php echo $this->get_field_id( 'orientation' ); ?>">
-            <?php _e('Ориентация блока:'); ?>
+            <?php _e('Ориентация блока:', 'sapeTranslate'); ?>
         </label>
         <select class="widefat" id="<?php echo $this->get_field_id( 'orientation' ); ?>"
                 name="<?php echo $this->get_field_name( 'orientation' ); ?>">
           <option value="0"<?php selected( $instance['orientation'], '0' ); ?>>
-              <?php _e('Вертикально'); ?>
+              <?php _e('Вертикально', 'sapeTranslate'); ?>
           </option>
           <option value="1"<?php selected( $instance['orientation'], '1' ); ?>>
-              <?php _e('Горизонтально'); ?>
+              <?php _e('Горизонтально', 'sapeTranslate'); ?>
           </option>
         </select>
       </p>
 
       <p>
         <label for="<?php echo $this->get_field_id( 'content' ); ?>">
-            <?php _e('Альтернативный текст:'); ?>
+            <?php _e('Альтернативный текст:', 'sapeTranslate'); ?>
         </label>
         <textarea class="widefat" id="<?php echo $this->get_field_id( 'content' ); ?>"
                   name="<?php echo $this->get_field_name( 'content' ); ?>"
@@ -1081,7 +1087,7 @@ class Sape_API_Widget_Articles extends WP_Widget {
             'sape_article',
             'Sape Articles',
             array(
-                'description' => __('Вывод анонсов статрей Sape на сайте. Вы можете использовать несколько виджетов, чтобы отобразить анонсы в нескольких местах.'),
+                'description' => __('Вывод анонсов статрей Sape на сайте. Вы можете использовать несколько виджетов, чтобы отобразить анонсы в нескольких местах.', 'sapeTranslate'),
                 'classname'   => '',
             )
         );
@@ -1120,7 +1126,7 @@ class Sape_API_Widget_Articles extends WP_Widget {
 
       <p>
         <label for="<?php echo $this->get_field_id( 'title' ); ?>">
-            <?php _e( 'Title:' ); ?>
+            <?php _e( 'Заглавие:', 'sapeTranslate'); ?>
         </label>
         <input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>"
                name="<?php echo $this->get_field_name( 'title' ); ?>"
@@ -1130,7 +1136,7 @@ class Sape_API_Widget_Articles extends WP_Widget {
 
       <p>
         <label for="<?php echo $this->get_field_id( 'count' ); ?>">
-            <?php _e('Количество анонсов:'); ?>
+            <?php _e('Количество анонсов:', 'sapeTranslate'); ?>
         </label>
         <input class="widefat" id="<?php echo $this->get_field_id( 'count' ); ?>"
                name="<?php echo $this->get_field_name( 'count' ); ?>"
@@ -1140,7 +1146,7 @@ class Sape_API_Widget_Articles extends WP_Widget {
 
       <p>
         <label for="<?php echo $this->get_field_id( 'content' ); ?>">
-            <?php _e('Альтернативный текст:'); ?>
+            <?php _e('Альтернативный текст:', 'sapeTranslate'); ?>
         </label>
         <textarea class="widefat" id="<?php echo $this->get_field_id( 'content' ); ?>"
                   name="<?php echo $this->get_field_name( 'content' ); ?>"
@@ -1162,7 +1168,7 @@ class Sape_API_Widget_Tizer extends WP_Widget {
             'sape_tizer',
             'Sape тизеры',
             array(
-                'description' => __('Вывод Тизерных Блоков на сайте. Вы можете использовать несколько виджетов, чтобы отобразить в нескольких местах.'),
+                'description' => __('Вывод Тизерных Блоков на сайте. Вы можете использовать несколько виджетов, чтобы отобразить в нескольких местах.', 'sapeTranslate'),
                 'classname'   => 'advert_tizer',
             )
         );
@@ -1201,7 +1207,7 @@ class Sape_API_Widget_Tizer extends WP_Widget {
 
       <p>
         <label for="<?php echo $this->get_field_id( 'title' ); ?>">
-            <?php _e( 'Title:' ); ?>
+            <?php _e( 'Заглавие:', 'sapeTranslate'); ?>
         </label>
         <input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>"
                name="<?php echo $this->get_field_name( 'title' ); ?>"
@@ -1211,7 +1217,7 @@ class Sape_API_Widget_Tizer extends WP_Widget {
 
       <p>
         <label for="<?php echo $this->get_field_id( 'id' ); ?>">
-            <?php _e( 'ID тизерного блока'); ?>
+            <?php _e( 'ID тизерного блока', 'sapeTranslate'); ?>
         </label>
         <input class="widefat" id="<?php echo $this->get_field_id( 'id' ); ?>"
                name="<?php echo $this->get_field_name( 'id' ); ?>"
@@ -1221,7 +1227,7 @@ class Sape_API_Widget_Tizer extends WP_Widget {
 
       <p>
         <label for="<?php echo $this->get_field_id( 'content' ); ?>">
-            <?php _e('Альтернативный текст:') ?>
+            <?php _e('Альтернативный текст:', 'sapeTranslate') ?>
         </label>
         <textarea class="widefat" id="<?php echo $this->get_field_id( 'content' ); ?>"
                   name="<?php echo $this->get_field_name( 'content' ); ?>"
@@ -1243,7 +1249,7 @@ class Sape_API_Widget_RTB extends WP_Widget {
             'sape_rtb',
             'Sape RTB',
             array(
-                'description' => __('Вывод Медийной рекламы на сайте. Вы можете использовать несколько виджетов, чтобы отобразить в нескольких местах.'),
+                'description' => __('Вывод Медийной рекламы на сайте. Вы можете использовать несколько виджетов, чтобы отобразить в нескольких местах.', 'sapeTranslate'),
                 'classname'   => 'advert_rtb',
             )
         );
@@ -1275,7 +1281,7 @@ class Sape_API_Widget_RTB extends WP_Widget {
 
       <p>
         <label for="<?php echo $this->get_field_id( 'title' ); ?>">
-            <?php _e( 'Title:' ); ?>
+            <?php _e( 'Заглавие:', 'sapeTranslate'); ?>
         </label>
         <input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>"
                name="<?php echo $this->get_field_name( 'title' ); ?>"
@@ -1285,7 +1291,7 @@ class Sape_API_Widget_RTB extends WP_Widget {
 
       <p>
         <label for="<?php echo $this->get_field_id( 'html' ); ?>">
-            <?php _e( 'Код RTB блока'); ?>
+            <?php _e( 'Код RTB блока', 'sapeTranslate'); ?>
         </label>
         <textarea class="widefat" id="<?php echo $this->get_field_id( 'html' ); ?>"
                   name="<?php echo $this->get_field_name( 'html' ); ?>"

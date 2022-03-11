@@ -2,7 +2,7 @@
 
 ## RU
 
-Плагин Wordpress для sape.ru **[v0.13](https://github.com/sape-ru/client-code-wordpress/blob/v0.13/plugin/saperu-integration-v0.13.zip?raw=true)**
+Плагин Wordpress для sape.ru **[v0.14](https://github.com/sape-ru/client-code-wordpress/blob/v0.14/plugin/saperu-integration-v0.14.zip?raw=true)**
 
 - встроенная версия клиентского кода Sape: 1.5.3
 
@@ -19,7 +19,7 @@ WordPress  4.2+ [системные требования для разных в�
 
 ## EN
 
-Wordpress plugin for sape.ru webmaster services integration **[v0.13](https://github.com/sape-ru/client-code-wordpress/blob/v0.13/plugin/saperu-integration-v0.13.zip?raw=true)**
+Wordpress plugin for sape.ru webmaster services integration **[v0.14](https://github.com/sape-ru/client-code-wordpress/blob/v0.14/plugin/saperu-integration-v0.14.zip?raw=true)**
 
 - built in version of sape.ru's client code: 1.5.3
 
