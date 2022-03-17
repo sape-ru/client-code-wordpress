@@ -1,5 +1,5 @@
-# Монетизация сайта - Sape
-Plugin Name: Монетизация сайта - Sape
+# Sape - website monetization
+Plugin Name: Sape - website monetization
 Plugin URI: https://github.com/sape-ru/client-code-wordpress/releases
 Description: Plugin for sape.ru webmaster services integration
 Contributors: Sape
@@ -14,35 +14,35 @@ Author URI: https://www.sape.ru/
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Плагин для автоматической установки кода системы Sape на сайт вебмастера
+Plugin for automatic installation of the Sape system code on the webmaster's site
 
-## Описание
+Plugin for site monetization from [Sape](https://www.sape.ru/). The plugin supports the following monetization formats:
 
-Плагин для монетизации сайта от [Sape](https://www.sape.ru/). Плагин поддерживает следующие форматы монетизации:
+- Rental Links
+- Sidewide rental links
+- Contextual rental links
+- Teaser blocks (links in teaser format)
+- Rental articles
+- Display advertising (RTB blocks)
 
-- Арендные ссылки
-- Сквозные арендные ссылки
-- Контекстные арендные ссылки
-- Тизерные блоки (ссылки в формате тизеров)
-- Арендные статьи
-- Медийная реклама (RTB блоки)
 
-## Установка
-**Важно!** Если Вы до этого устанавливали код системы и папки вручную, то удалите их!
+##Installation
 
-1. В панеле администратора WordPress переходим в раздел "Плагины" и нажимаем "Добавить новый".
-2. В поле поиска вводим "sape", находим наш плагин и нажимаем кнопку "Установить". После установки нажимаем "Активировать".
-3. После активации плагина переходим в его настройки и в поле "Ключ Пользователя" указываем свой идентификатор.
-4. Отмечаем галочкой форматы монетизации, которые будем размещать на сайте. Сохраняем настройки.
-5. После настройки переходим в раздел "Внешний вид" -> "Виджеты". Завершающий шаг - вам нужно разместить в нужных местах вашей темы (шаблона) форматы монетизации, которые вы подключили на прошлом шаге. Для этого разместите виджеты, например в Sidebar или Footer
+**Important!** If you previously set the system code and folders manually, then delete them!
 
-## Настройка виджета
-Все настройки необязательные - все будет работать с настройками по умолчанию. Настройка виджета рассмотрим на примере виджета "Sape: Арендные ссылки"
+1. In the WordPress admin panel, go to the "Plugins" section and click "Add New".
+2. In the search field, enter "sape", find our plugin and click the "Install" button. After installation, click "Activate".
+3. After activating the plugin, go to its settings and enter your ID in the "User Key" field.
+4. Check off the monetization formats that we will post on the site. Save the settings.
+5. After setting, go to the "Outside view" -> "Widgets" section. The final step - you need to place in the right places of your topic (template) the monetization formats that you connected on the previous step. To do this, place widgets, for example, in Sidebar or Footer
 
-- Задайте заголовок (необязательно)
-- Задайте количество ссылок, которое будет выводиться в блоке (если оставить пустым - будут выводиться все купленные ссылки)
-- Если вы хотите выводить ссылки в формате блоков - укажите ```Формат=Блок``` и задайте как будет отображаться блок: вертикально или горизонтально
-- Нажмите кнопку "Сохранить"
+### Widget setup
+All settings are optional - everything will work with the default settings. Let's consider setting the widget using the example of "Sape: Rental Links" widget
+
+- Set a title (optional)
+- Set the number of links that will be displayed in the block (if left empty, all purchased links will be displayed)
+- If you want to display links in block format - specify ```Format=Block``` and set how the block will be displayed: vertically or horizontally
+- Click "Save" button
 
 ## Frequently Asked Questions
 FAQ
@@ -83,6 +83,9 @@ Add and update translation
 
 ### v 0.14
 Upgrade translation
+
+### v 0.15
+Change readme text
 
 ## Changelog
 ### v 0.01
@@ -128,3 +131,6 @@ Update  translations
 
 ### v 0.14
 Upgrade  translations
+
+### v 0.15
+Change readme text
