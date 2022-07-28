@@ -1,98 +1,99 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: WordPress Sape\n"
-"POT-Creation-Date: 2022-03-10 18:39+0500\n"
-"PO-Revision-Date: 2022-03-10 19:02+0500\n"
+"Project-Id-Version: sapeTranslate\n"
+"POT-Creation-Date: 2022-07-25 12:49+0500\n"
+"PO-Revision-Date: 2022-07-25 12:50+0500\n"
 "Last-Translator: \n"
-"Language-Team: WordPress Sape\n"
+"Language-Team: \n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.0.1\n"
-"X-Poedit-Basepath: ..\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-KeywordsList: __;_e\n"
 "X-Poedit-SearchPath-0: saperu-integration.php\n"
 
-#: saperu-integration.php:96
+#: saperu-integration.php:92
 #, php-format
 msgid "Константа %s уже определена ранее!"
 msgstr "The constant %s has been already defined before!"
 
-#: saperu-integration.php:98
+#: saperu-integration.php:94
 #, php-format
 msgid "Настройки плагина %s не применены!"
 msgstr "Plugin %s settings are not applied!"
 
-#: saperu-integration.php:271
+#: saperu-integration.php:267
 #, php-format
 msgid "Директория %s не доступна для записи."
 msgstr "Directory %s is not available for write file."
 
-#: saperu-integration.php:285
+#: saperu-integration.php:281
 #, php-format
 msgid "Файл %s не доступен для записи."
 msgstr "File %s is not writable."
 
-#: saperu-integration.php:298
+#: saperu-integration.php:294
 #, php-format
 msgid "Исправьте и активируйте плагин %s заново."
 msgstr "Correct and reactivate the %s plugin."
 
-#: saperu-integration.php:299 saperu-integration.php:947
+#: saperu-integration.php:295 saperu-integration.php:947
 msgid "Активировать"
 msgstr "Activate"
 
-#: saperu-integration.php:307
+#: saperu-integration.php:303
 #, php-format
 msgid "или исправить права доступа и %s настроить %s плагин заново."
 msgstr "or correct permissions and %s reconfigure %s the plugin."
 
-#: saperu-integration.php:551 saperu-integration.php:559
-#: saperu-integration.php:569 saperu-integration.php:579
-#: saperu-integration.php:580
+#: saperu-integration.php:550 saperu-integration.php:558
+#: saperu-integration.php:568 saperu-integration.php:578
+#: saperu-integration.php:579
 msgid "Настройки"
 msgstr "Settings"
 
-#: saperu-integration.php:570 saperu-integration.php:591
+#: saperu-integration.php:569 saperu-integration.php:590
 msgid "Монетизация сайта - Sape"
 msgstr "Sape - Monetise Your Site"
 
-#: saperu-integration.php:625
+#: saperu-integration.php:624
 msgid "Задайте ваш ключ пользователя"
 msgstr "Set your User Key"
 
-#: saperu-integration.php:634
+#: saperu-integration.php:633
 msgid "Форматы монетизации"
 msgstr "Monetization formats"
 
-#: saperu-integration.php:636
+#: saperu-integration.php:635
 msgid "Активируйте нужные вам форматы монетизации."
 msgstr "Activate the monetization formats you need."
 
-#: saperu-integration.php:646
+#: saperu-integration.php:645
 msgid "Ключ Пользователя"
 msgstr "USER KEY"
 
-#: saperu-integration.php:654
+#: saperu-integration.php:653
 msgid "Ключ Пользователя - это ваш уникальный идентификатор (хеш)."
 msgstr "The User Key is your unique identifier (hash)."
 
-#: saperu-integration.php:655
+#: saperu-integration.php:654
 #, php-format
 msgid ""
 "Можете найти его на %s странице добавления нового сайта%s в вашем аккаунте."
 msgstr "You can find it on the %s New Site Add Page%s in your account."
 
-#: saperu-integration.php:656
+#: saperu-integration.php:655
 #, php-format
 msgid ""
 "Ключ Пользователя похож на что-то вроде %s d12d0dx074c7ba7f6f78d60e2bb560e3f "
 "%s."
 msgstr "The User Key look like %s d12d0d074c7ba7f6f78d60e2bb560e3f %s."
 
-#: saperu-integration.php:657
+#: saperu-integration.php:656
 msgid ""
 "Укажите ваш Ключ Пользователя и плагин всё сделает автоматически (вам не "
 "нужно будет загружать файлы или архивы вручную)."
@@ -100,11 +101,11 @@ msgstr ""
 "Set your User Key and the plugin will do everything automatically (you will "
 "not need to upload files or archives manually)."
 
-#: saperu-integration.php:663
+#: saperu-integration.php:662
 msgid "Арендные ссылки"
 msgstr "Rental links"
 
-#: saperu-integration.php:672
+#: saperu-integration.php:671
 #, php-format
 msgid ""
 "После активации будет доступен как %s виджет%s для вывода ссылок, так и "
@@ -113,9 +114,13 @@ msgstr ""
 "After activation, both the %s widget%s for displaying links and the "
 "shortcode will be available:"
 
-#: saperu-integration.php:674
+#: saperu-integration.php:673
 msgid "вывод всех ссылок в формате текста"
 msgstr "displaying all links in text format"
+
+#: saperu-integration.php:674
+msgid "принудительно показать проверочный код"
+msgstr "force show check-code"
 
 #: saperu-integration.php:675
 msgid "вывод лишь двух ссылок"
@@ -245,45 +250,49 @@ msgstr ""
 "Displaying Sape links on the site. You can use multiple widgets to display "
 "links in multiple locations."
 
-#: saperu-integration.php:1018 saperu-integration.php:1133
-#: saperu-integration.php:1214 saperu-integration.php:1288
+#: saperu-integration.php:1020 saperu-integration.php:1143
+#: saperu-integration.php:1224 saperu-integration.php:1298
 msgid "Заглавие:"
 msgstr "Title:"
 
-#: saperu-integration.php:1028
+#: saperu-integration.php:1030
 msgid "Количество ссылок:"
 msgstr "Number of links:"
 
-#: saperu-integration.php:1038
+#: saperu-integration.php:1040
 msgid "Формат:"
 msgstr "Format:"
 
-#: saperu-integration.php:1043
+#: saperu-integration.php:1045
 msgid "Текст"
 msgstr "Text"
 
-#: saperu-integration.php:1046
+#: saperu-integration.php:1048
 msgid "Блок"
 msgstr "Block"
 
-#: saperu-integration.php:1053
+#: saperu-integration.php:1055
 msgid "Ориентация блока:"
 msgstr "Block orientation:"
 
-#: saperu-integration.php:1058
+#: saperu-integration.php:1060
 msgid "Вертикально"
 msgstr "Vertical"
 
-#: saperu-integration.php:1061
+#: saperu-integration.php:1063
 msgid "Горизонтально"
 msgstr "Horizontally"
 
-#: saperu-integration.php:1068 saperu-integration.php:1153
-#: saperu-integration.php:1234
+#: saperu-integration.php:1070 saperu-integration.php:1163
+#: saperu-integration.php:1244
 msgid "Альтернативный текст:"
 msgstr "Alternative text:"
 
-#: saperu-integration.php:1094
+#: saperu-integration.php:1081
+msgid "Принудительно показать проверочный код"
+msgstr "Force show check-code"
+
+#: saperu-integration.php:1104
 msgid ""
 "Вывод анонсов статрей Sape на сайте. Вы можете использовать несколько "
 "виджетов, чтобы отобразить анонсы в нескольких местах."
@@ -291,11 +300,11 @@ msgstr ""
 "Display of announcements of Rental Articles on the site. You can use "
 "multiple widgets to display announcements in multiple locations."
 
-#: saperu-integration.php:1143
+#: saperu-integration.php:1153
 msgid "Количество анонсов:"
 msgstr "Number of announcements:"
 
-#: saperu-integration.php:1175
+#: saperu-integration.php:1185
 msgid ""
 "Вывод Тизерных Блоков на сайте. Вы можете использовать несколько виджетов, "
 "чтобы отобразить в нескольких местах."
@@ -303,11 +312,11 @@ msgstr ""
 "Display of Teaser Blocks on the site. You can use multiple widgets to "
 "display in multiple locations."
 
-#: saperu-integration.php:1224
+#: saperu-integration.php:1234
 msgid "ID тизерного блока"
 msgstr "Teaser block ID"
 
-#: saperu-integration.php:1256
+#: saperu-integration.php:1266
 msgid ""
 "Вывод Медийной рекламы на сайте. Вы можете использовать несколько виджетов, "
 "чтобы отобразить в нескольких местах."
@@ -315,6 +324,6 @@ msgstr ""
 "Output of Display Advertising on the site (RTB ad blocks). You can use "
 "multiple widgets to display in multiple locations."
 
-#: saperu-integration.php:1298
+#: saperu-integration.php:1308
 msgid "Код RTB блока"
 msgstr "RTB code"

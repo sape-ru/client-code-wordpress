@@ -3,7 +3,7 @@
 Plugin Name: Sape.ru integration
 Plugin URI: https://github.com/sape-ru/client-code-wordpress/releases
 Description: Plugin for Sape.ru webmaster services integration
-Version: 0.16
+Version: 3.4
 Author: Sape.ru
 Author URI: http://www.sape.ru/
 License: GPLv2 or later
@@ -497,13 +497,16 @@ class Sape_API {
         $atts = shortcode_atts( array(
                                     'count'       => null,
                                     'block'       => 0,
-                                    'orientation' => 0
+                                    'orientation' => 0,
+                                    'force_show_code' => false
                                 ), $atts );
+
+        $this->_sape_options['force_show_code'] = $atts['force_show_code'];
 
         $text = $this->_sape_return_links(
             $atts['count'],
             array(
-                'as_block'          => $atts['block'] == 1 ? true : false,
+                'as_block'          => $atts['block'] == 1,
                 'block_orientation' => $atts['orientation'],
             )
         );
@@ -667,12 +670,14 @@ class Sape_API {
                     '<br/>' .
                     sprintf(__('После активации будет доступен как %s виджет%s для вывода ссылок, так и шорткод:', 'sapeTranslate'), '<a target="_blank" href="' . admin_url( 'widgets.php' ) . '">', '</a>')
                     .'<br/>
-<code>[sape]</code> - '. __('вывод всех ссылок в формате текста', 'sapeTranslate'). '<br/>
-<code>[sape count=2]</code> - ' .__('вывод лишь двух ссылок', 'sapeTranslate') .'<br/>
-<code>[sape count=2 block=1]</code> - ' .__('вывод ссылок в формате блока', 'sapeTranslate') .'<br/>
-<code>[sape count=2 block=1 orientation=1]</code> - ' .__('вывод ссылок в формате блока горизонтально', 'sapeTranslate'). '<br/>
-<code>[sape] html, js[/sape]</code> - ' .__('вывод альтернативного текста при отсутствии ссылок.', 'sapeTranslate'). '<br/>'.
-                    __('Для вывода внутри темы (шаблона) используйте следующий код:', 'sapeTranslate'). '<code>' . esc_attr( '<?php echo do_shortcode(\'[sape]\') ?>' ) . '</code>'. '.<br/>'.
+                      <code>[sape]</code> - '. __('вывод всех ссылок в формате текста', 'sapeTranslate'). '<br/>
+                      <code>[sape force_show_code = 1]</code> - '. __('принудительно показать проверочный код', 'sapeTranslate'). '<br/>
+                      <code>[sape count=2]</code> - ' .__('вывод лишь двух ссылок', 'sapeTranslate') .'<br/>
+                      <code>[sape count=2 block=1]</code> - ' .__('вывод ссылок в формате блока', 'sapeTranslate') .'<br/>
+                      <code>[sape count=2 block=1 orientation=1]</code> - ' .__('вывод ссылок в формате блока горизонтально', 'sapeTranslate'). '<br/>
+                      <code>[sape] html, js[/sape]</code> - ' .__('вывод альтернативного текста при отсутствии ссылок.', 'sapeTranslate'). '<br/>'.
+                      __('Для вывода внутри темы (шаблона) используйте следующий код:', 'sapeTranslate'). '<code>' . esc_attr( '<?php echo do_shortcode(\'[sape]\') ?>' ) . '</code>'.
+                    '.<br/>'.
                     sprintf( __('Если вы видите не все проданные ссылки на странице, то оставшиеся добавятся в футер (подвал) сайта во избежание появления у ссылок статуса %s.', 'sapeTranslate'), '<code>ERROR</code>' )
             ,
             ) // args
@@ -980,8 +985,9 @@ class Sape_API_Widget_Links extends WP_Widget {
         $o_count       = $instance['count'] ? ' count=' . $instance['count'] : '';
         $o_block       = $instance['block'] ? ' block=' . $instance['block'] : '';
         $o_orientation = $instance['orientation'] ? ' orientation=' . $instance['orientation'] : '';
+        $o_force_show_code = $instance['force_show_code'] ? ' force_show_code=' . $instance['force_show_code'] : '';
 
-        $shortcode = "[sape{$o_count}{$o_block}{$o_orientation}]{$instance['content']}[/sape]";
+        $shortcode = "[sape{$o_count}{$o_block}{$o_orientation}{$o_force_show_code}]{$instance['content']}[/sape]";
 
         $text = do_shortcode( $shortcode );
 
@@ -1005,7 +1011,8 @@ class Sape_API_Widget_Links extends WP_Widget {
     public function form( $instance ) {
         $instance = wp_parse_args(
             (array) $instance,
-            array( 'title' => '', 'block' => '0', 'count' => '', 'orientation' => '0', 'content' => '' )
+            array( 'title' => '', 'block' => '0', 'count' => '', 'orientation' => '0', 'content' => '',
+                   'force_show_code' => '')
         );
         ?>
 
@@ -1066,6 +1073,15 @@ class Sape_API_Widget_Links extends WP_Widget {
         <textarea class="widefat" id="<?php echo $this->get_field_id( 'content' ); ?>"
                   name="<?php echo $this->get_field_name( 'content' ); ?>"
         ><?php echo esc_attr( $instance['content'] ); ?></textarea>
+      </p>
+
+      <p>
+        <input class="widefat" type="checkbox" id="<?php echo $this->get_field_id( 'force_show_code' ); ?>"
+              <?php checked('on', $instance['force_show_code']);?>
+               name="<?php echo $this->get_field_name( 'force_show_code' ); ?>">
+        <label for="<?php echo $this->get_field_id( 'force_show_code' ); ?>">
+            <?php _e('Принудительно показать проверочный код', 'sapeTranslate'); ?>
+        </label>
       </p>
 
         <?php
