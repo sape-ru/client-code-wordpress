@@ -6,9 +6,9 @@ Contributors: Sape
 Donate link: https://www.sape.ru/
 Tags:  sape, seo, link, site, teaser, rtb
 Requires at least: 4.2
-Tested up to: 5.8.1
+Tested up to: 6.0.1
 Stable tag: trunk
-Version: 3.4
+Version: 3.4.1
 Author: Sape.ru
 Author URI: https://www.sape.ru/
 License: GPLv2 or later
@@ -94,6 +94,9 @@ fix bugs
 Compatible with Word Press 6.0
 The ability to display verification code was added
 
+### v 3.4.1
+Interface edits
+
 ## Changelog
 ### v 0.01
 First version
@@ -148,3 +151,6 @@ Change readme text
 ### v 3.4
 Compatible with Word Press 6.0
 The ability to display verification code was added
+
+### v 3.4.1
+Interface edits

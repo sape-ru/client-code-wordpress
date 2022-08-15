@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: sapeTranslate\n"
-"POT-Creation-Date: 2022-07-25 12:49+0500\n"
-"PO-Revision-Date: 2022-07-25 12:50+0500\n"
+"POT-Creation-Date: 2022-08-15 10:29+0500\n"
+"PO-Revision-Date: 2022-08-15 10:45+0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: en\n"
@@ -41,7 +41,7 @@ msgstr "File %s is not writable."
 msgid "Исправьте и активируйте плагин %s заново."
 msgstr "Correct and reactivate the %s plugin."
 
-#: saperu-integration.php:295 saperu-integration.php:947
+#: saperu-integration.php:295 saperu-integration.php:948
 msgid "Активировать"
 msgstr "Activate"
 
@@ -138,12 +138,12 @@ msgstr "displaying links in block format horizontally"
 msgid "вывод альтернативного текста при отсутствии ссылок."
 msgstr "displaying alternative text in the absence of links."
 
-#: saperu-integration.php:679 saperu-integration.php:753
+#: saperu-integration.php:679 saperu-integration.php:754
 msgid "Для вывода внутри темы (шаблона) используйте следующий код:"
 msgstr ""
 "To display inside your WordPress Theme (template), use the following code:"
 
-#: saperu-integration.php:680
+#: saperu-integration.php:681
 #, php-format
 msgid ""
 "Если вы видите не все проданные ссылки на странице, то оставшиеся добавятся "
@@ -153,43 +153,43 @@ msgstr ""
 "will be added to the footer of the site in order to avoid the status %s for "
 "links."
 
-#: saperu-integration.php:687
+#: saperu-integration.php:688
 msgid "Контекстные ссылки"
 msgstr "Content rental links"
 
-#: saperu-integration.php:694
+#: saperu-integration.php:695
 msgid ""
 "Ссылки, размещенные непосредственно внутри существующего контента страниц."
 msgstr "Links placed inside existing page content."
 
-#: saperu-integration.php:700
+#: saperu-integration.php:701
 msgid "Арендные статьи"
 msgstr "Rental articles"
 
-#: saperu-integration.php:707
+#: saperu-integration.php:708
 msgid ""
 "Размещение статей и анонсов для статей на сайте по моделе арендной оплаты."
 msgstr ""
 "Placement of articles and announcements for articles on the site for the "
 "rental payment model."
 
-#: saperu-integration.php:720
+#: saperu-integration.php:721
 msgid "Пользователь, от имени которого будут создаваться статьи."
 msgstr "The user under whose name articles will be created."
 
-#: saperu-integration.php:734
+#: saperu-integration.php:735
 msgid "Рубрика, в которой будут создаваться статьи."
 msgstr "The category in which articles will be created."
 
-#: saperu-integration.php:741
+#: saperu-integration.php:742
 msgid "Ссылки-тизеры"
 msgstr "Teaser rental links"
 
-#: saperu-integration.php:749
+#: saperu-integration.php:750
 msgid "Ссылки размещаемые в формате тизерных блоков."
 msgstr "Links placed in the format of teaser blocks."
 
-#: saperu-integration.php:750
+#: saperu-integration.php:751
 #, php-format
 msgid ""
 "После активации будет доступен как %s виджет%s для вывода тизерных блоков, "
@@ -198,27 +198,27 @@ msgstr ""
 "After activation, both a %s widget%s for displaying teaser blocks and a "
 "shortcode will be available:%s"
 
-#: saperu-integration.php:751
+#: saperu-integration.php:752
 msgid "вывод тизерного блока, с ID 1"
 msgstr "teaser block display with ID 1"
 
-#: saperu-integration.php:752
+#: saperu-integration.php:753
 msgid "вывод альтернативного текста при отсутствии тизерного блока."
 msgstr "displaying alternative text in the absence of a teaser block."
 
-#: saperu-integration.php:759
+#: saperu-integration.php:760
 msgid "Файл изображения тизеров"
 msgstr "Teaser image file"
 
-#: saperu-integration.php:766
+#: saperu-integration.php:767
 msgid "Имя файла, показывающего картинки тизеров."
 msgstr "Name of the file showing teaser pictures."
 
-#: saperu-integration.php:773
+#: saperu-integration.php:774
 msgid "Медийная реклама"
 msgstr "Display advertising"
 
-#: saperu-integration.php:781
+#: saperu-integration.php:782
 msgid ""
 "Если включен - на вашем сайте будут показываться медийные баннеры по "
 "технологии RTB, заработок по CPM модели."
@@ -226,23 +226,27 @@ msgstr ""
 "If enabled, media banners based on RTB technology will be displayed on your "
 "site, earnings based on the CPM model."
 
-#: saperu-integration.php:782
+#: saperu-integration.php:783
 #, php-format
 msgid "После активации будет доступен %s виджет%s для вывода RTB блоков."
 msgstr ""
 "After activation, a %s widget%s for displaying RTB blocks will be available."
 
-#: saperu-integration.php:800 saperu-integration.php:824
+#: saperu-integration.php:801 saperu-integration.php:825
 #, php-format
 msgid "папка %s не доступна для записи."
 msgstr "folder %s is not available."
 
-#: saperu-integration.php:801 saperu-integration.php:825
+#: saperu-integration.php:802 saperu-integration.php:826
 #, php-format
 msgid "Вы можете создать файл %s вручную с содержимым:"
 msgstr "You can create a file %s with the content manually:"
 
-#: saperu-integration.php:977
+#: saperu-integration.php:976
+msgid "Sape Ссылки"
+msgstr "Same Links"
+
+#: saperu-integration.php:978
 msgid ""
 "Вывод ссылок Sape на сайте. Вы можете использовать несколько виджетов, чтобы "
 "отобразить ссылки в нескольких местах."
@@ -250,49 +254,49 @@ msgstr ""
 "Displaying Sape links on the site. You can use multiple widgets to display "
 "links in multiple locations."
 
-#: saperu-integration.php:1020 saperu-integration.php:1143
-#: saperu-integration.php:1224 saperu-integration.php:1298
+#: saperu-integration.php:1021 saperu-integration.php:1145
+#: saperu-integration.php:1226 saperu-integration.php:1300
 msgid "Заглавие:"
 msgstr "Title:"
 
-#: saperu-integration.php:1030
+#: saperu-integration.php:1031
 msgid "Количество ссылок:"
 msgstr "Number of links:"
 
-#: saperu-integration.php:1040
+#: saperu-integration.php:1041
 msgid "Формат:"
 msgstr "Format:"
 
-#: saperu-integration.php:1045
+#: saperu-integration.php:1046
 msgid "Текст"
 msgstr "Text"
 
-#: saperu-integration.php:1048
+#: saperu-integration.php:1049
 msgid "Блок"
 msgstr "Block"
 
-#: saperu-integration.php:1055
+#: saperu-integration.php:1056
 msgid "Ориентация блока:"
 msgstr "Block orientation:"
 
-#: saperu-integration.php:1060
+#: saperu-integration.php:1061
 msgid "Вертикально"
 msgstr "Vertical"
 
-#: saperu-integration.php:1063
+#: saperu-integration.php:1064
 msgid "Горизонтально"
 msgstr "Horizontally"
 
-#: saperu-integration.php:1070 saperu-integration.php:1163
-#: saperu-integration.php:1244
+#: saperu-integration.php:1071 saperu-integration.php:1165
+#: saperu-integration.php:1246
 msgid "Альтернативный текст:"
 msgstr "Alternative text:"
 
-#: saperu-integration.php:1081
+#: saperu-integration.php:1083
 msgid "Принудительно показать проверочный код"
 msgstr "Force show check-code"
 
-#: saperu-integration.php:1104
+#: saperu-integration.php:1106
 msgid ""
 "Вывод анонсов статрей Sape на сайте. Вы можете использовать несколько "
 "виджетов, чтобы отобразить анонсы в нескольких местах."
@@ -300,11 +304,11 @@ msgstr ""
 "Display of announcements of Rental Articles on the site. You can use "
 "multiple widgets to display announcements in multiple locations."
 
-#: saperu-integration.php:1153
+#: saperu-integration.php:1155
 msgid "Количество анонсов:"
 msgstr "Number of announcements:"
 
-#: saperu-integration.php:1185
+#: saperu-integration.php:1187
 msgid ""
 "Вывод Тизерных Блоков на сайте. Вы можете использовать несколько виджетов, "
 "чтобы отобразить в нескольких местах."
@@ -312,11 +316,11 @@ msgstr ""
 "Display of Teaser Blocks on the site. You can use multiple widgets to "
 "display in multiple locations."
 
-#: saperu-integration.php:1234
+#: saperu-integration.php:1236
 msgid "ID тизерного блока"
 msgstr "Teaser block ID"
 
-#: saperu-integration.php:1266
+#: saperu-integration.php:1268
 msgid ""
 "Вывод Медийной рекламы на сайте. Вы можете использовать несколько виджетов, "
 "чтобы отобразить в нескольких местах."
@@ -324,6 +328,6 @@ msgstr ""
 "Output of Display Advertising on the site (RTB ad blocks). You can use "
 "multiple widgets to display in multiple locations."
 
-#: saperu-integration.php:1308
+#: saperu-integration.php:1310
 msgid "Код RTB блока"
 msgstr "RTB code"

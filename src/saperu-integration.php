@@ -3,7 +3,7 @@
 Plugin Name: Sape.ru integration
 Plugin URI: https://github.com/sape-ru/client-code-wordpress/releases
 Description: Plugin for Sape.ru webmaster services integration
-Version: 3.4
+Version: 3.4.1
 Author: Sape.ru
 Author URI: http://www.sape.ru/
 License: GPLv2 or later
@@ -973,7 +973,7 @@ class Sape_API_Widget_Links extends WP_Widget {
     public function __construct() {
         parent::__construct(
             'sape_links',
-            'Sape Ссылки',
+            __('Sape Ссылки', 'sapeTranslate'),
             array(
                 'description' => __('Вывод ссылок Sape на сайте. Вы можете использовать несколько виджетов, чтобы отобразить ссылки в нескольких местах.', 'sapeTranslate'),
                 'classname'   => '',
