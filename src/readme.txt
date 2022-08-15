@@ -8,7 +8,7 @@ Tags:  sape, seo, link, site, teaser, rtb
 Requires at least: 4.2
 Tested up to: 6.0.1
 Stable tag: trunk
-Version: 3.4.1
+Version: 3.4.2
 Author: Sape.ru
 Author URI: https://www.sape.ru/
 License: GPLv2 or later
@@ -97,6 +97,9 @@ The ability to display verification code was added
 ### v 3.4.1
 Interface edits
 
+### v 3.4.2
+Translate edits
+
 ## Changelog
 ### v 0.01
 First version
@@ -154,3 +157,6 @@ The ability to display verification code was added
 
 ### v 3.4.1
 Interface edits
+
+### v 3.4.2
+Translate edits
