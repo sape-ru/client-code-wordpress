@@ -20,7 +20,7 @@
  */
 class SAPE_base
 {
-    protected $_version = '1.5.3 (WP v3.4.2)';
+    protected $_version = '1.5.4 (WP v3.4.3)';
 
     protected $_verbose = false;
 
@@ -79,6 +79,12 @@ class SAPE_base
     protected $_file_contents_for_debug = array();
 
     /**
+     * Глубина стека, передаваемая в debug
+     * @var int
+     */
+    protected $_debug_stack_max_deep    = 5;
+
+    /**
      * Регистронезависимый режим работы, использовать только на свой страх и риск
      * @var bool
      */
@@ -117,6 +123,31 @@ class SAPE_base
     protected $_force_update_db = false;
 
     protected $_user_agent = '';
+
+    /**
+     * обязательный вывод
+     * @var string|null
+     */
+    protected $_page_obligatory_output = null;
+
+    /**
+     * Опции запуска скрипта
+     * @var array|mixed|null
+     */
+    protected $_options = array();
+
+    /**
+     * Запрошенный uri
+     * @var mixed|null
+     */
+    protected $_server_request_uri = null;
+    protected $_getenv_request_uri = null;
+
+    /**
+     * Хеш пользователя
+     * @var string|null
+     */
+    protected $_SAPE_USER = null;
 
     public function __construct($options = null)
     {
@@ -257,7 +288,10 @@ class SAPE_base
      */
     protected function _debug_output($data)
     {
-        $data = '<!-- <sape_debug_info>' . @base64_encode(serialize($data)) . '</sape_debug_info> -->';
+        $data = '<!-- <sape_debug_info>' .
+            @base64_encode(serialize($this->prepare_debug_data($data, $this->_debug_stack_max_deep))) .
+            '</sape_debug_info> -->'
+        ;
 
         return $data;
     }
@@ -636,6 +670,38 @@ class SAPE_base
         }
 
         return $html;
+    }
+
+    /**
+     * Подготовить данные для отладки
+     * @param mixed $data
+     * @param int $max_deep максимальная глубина обхода массивов и вложенных объектов
+     * @return mixed
+     */
+    protected function prepare_debug_data(
+        $data,
+        $max_deep
+    ) {
+        if ($max_deep < 1 || $data instanceof \Closure) {
+            return null;
+        } elseif (is_array($data)) {
+            $result = array();
+            foreach ($data as $key => $value) {
+                $result[$key] = $this->prepare_debug_data($value, $max_deep - 1);
+            }
+
+            return $result;
+        } elseif (is_object($data)) {
+            $result = array();
+            $filledObjectFields = get_object_vars($data);
+            foreach ($filledObjectFields as $key => $value) {
+                $result[$key] = $this->prepare_debug_data($value, $max_deep - 1);
+            }
+
+            return $result;
+        }
+
+        return $data;
     }
 
     /**

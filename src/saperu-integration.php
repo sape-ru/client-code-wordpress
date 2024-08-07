@@ -3,7 +3,7 @@
 Plugin Name: Sape.ru integration
 Plugin URI: https://github.com/sape-ru/client-code-wordpress/releases
 Description: Plugin for Sape.ru webmaster services integration
-Version: 3.4.2
+Version: 3.4.3
 Author: Sape.ru
 Author URI: http://www.sape.ru/
 License: GPLv2 or later
