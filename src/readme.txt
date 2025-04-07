@@ -4,11 +4,11 @@ Plugin URI: https://github.com/sape-ru/client-code-wordpress/releases
 Description: Plugin for sape.ru webmaster services integration
 Contributors: Sape
 Donate link: https://www.sape.ru/
-Tags:  sape, seo, link, site, teaser, rtb
+Tags:  sape, seo, link, site, teaser
 Requires at least: 4.2
 Tested up to: 6.0.1
 Stable tag: trunk
-Version: 3.4.3
+Version: 3.4.4
 Author: Sape.ru
 Author URI: https://www.sape.ru/
 License: GPLv2 or later
@@ -103,6 +103,9 @@ Translate edits
 ### v 3.4.3
 - php8.3 compatibility
 
+### v 3.4.4
+Update client_code
+
 ## Changelog
 ### v 0.01
 First version
@@ -166,3 +169,6 @@ Translate edits
 
 ### v 3.4.3
 - php8.3 compatibility
+
+### v 3.4.4
+Update client_code
