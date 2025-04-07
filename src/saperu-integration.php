@@ -3,7 +3,7 @@
 Plugin Name: Sape.ru integration
 Plugin URI: https://github.com/sape-ru/client-code-wordpress/releases
 Description: Plugin for Sape.ru webmaster services integration
-Version: 3.4.3
+Version: 3.4.4
 Author: Sape.ru
 Author URI: http://www.sape.ru/
 License: GPLv2 or later
@@ -30,9 +30,7 @@ class Sape_API {
         'sape_user'             => '', // like d12d0d074c7ba7f6f78d60e2bb560e3f
         'sape_part_is_client'   => true,
         'sape_part_is_context'  => true,
-        'sape_part_is_articles' => true,
         'sape_part_is_tizer'    => false,
-        'sape_part_is_rtb'    => false,
         'sape_widget_class'     => 'advert',
         'sape_login'            => ' ',
         'sape_password'         => ' ',
@@ -53,9 +51,6 @@ class Sape_API {
 
     /** @var SAPE_context */
     private $_sape_context;
-
-    /** @var SAPE_articles */
-    private $_sape_articles;
 
     private $_plugin_basename;
 
@@ -81,15 +76,15 @@ class Sape_API {
             load_plugin_textdomain( 'sapeTranslate', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
         }
 
-        // _SAPE_USER
-        if ( ! defined( '_SAPE_USER' ) ) {
-            define( '_SAPE_USER', get_option( 'sape_user' ) );
+        // _BACKLINKS_USER
+        if ( ! defined( '_BACKLINKS_USER' ) ) {
+            define( '_BACKLINKS_USER', get_option( 'sape_user' ) );
         } else {
             if ( is_admin() ) {
                 add_action( 'admin_init', function () {
                     add_action( 'admin_notices', function () {
                         echo '<div class="update-nag"><p>';
-                        echo sprintf( __('Константа %s уже определена ранее!', 'sapeTranslate'), '<code>_SAPE_USER</code>' );
+                        echo sprintf( __('Константа %s уже определена ранее!', 'sapeTranslate'), '<code>_BACKLINKS_USER</code>' );
                         echo ' ';
                         echo sprintf( __('Настройки плагина %s не применены!', 'sapeTranslate'), '<code>Sape.ru integration</code>' );
                         echo '</p></div>';
@@ -100,9 +95,7 @@ class Sape_API {
 
         $this->_registerLinks();
         $this->_registerContext();
-        $this->_registerArticles();
         $this->_registerTizer();
-        $this->_registerRTB();
         $this->_registerCounter();
     }
 
@@ -123,31 +116,9 @@ class Sape_API {
         }
     }
 
-    protected function _registerArticles()
-    {
-        if ( get_option( 'sape_part_is_articles' ) && _SAPE_USER !== '' ) {
-
-            add_action( 'widgets_init', function () {
-                register_widget( 'Sape_API_Widget_Articles' );
-            }, 1 );
-
-            add_shortcode('sape_article', array(&$this, 'shortcode_sape_article'));
-            add_filter('no_texturize_shortcodes', function ($list) {
-                $list[] = 'sape_article';
-
-                return $list;
-            });
-
-            add_action( 'wp_footer', array( &$this, 'render_remained_article' ), 1 );
-
-            // Выводим контент постов без внутреннего преобразования Wordpress
-            add_filter( 'the_content', array(&$this, 'disable_transform_content') );
-        }
-    }
-
     protected function _registerContext()
     {
-        if ( get_option( 'sape_part_is_context' ) && _SAPE_USER !== '' ) {
+        if ( get_option( 'sape_part_is_context' ) && _BACKLINKS_USER !== '' ) {
             add_filter( 'the_content', array( &$this, '_sape_replace_in_text_segment' ), 11, 1);
             add_filter( 'the_excerpt', array( &$this, '_sape_replace_in_text_segment' ), 11, 1 );
             remove_filter( 'the_content', 'do_shortcode' );
@@ -159,7 +130,7 @@ class Sape_API {
 
     protected function _registerTizer()
     {
-        if ( get_option( 'sape_part_is_tizer' ) && _SAPE_USER !== '' ) {
+        if ( get_option( 'sape_part_is_tizer' ) && _BACKLINKS_USER !== '' ) {
 
             add_action( 'widgets_init', function () {
                 register_widget( 'Sape_API_Widget_Tizer' );
@@ -175,16 +146,9 @@ class Sape_API {
         }
     }
 
-    protected function _registerRTB()
-    {
-        if ( get_option( 'sape_part_is_rtb' ) && _SAPE_USER !== '' ) {
-            add_action( 'widgets_init', function () {register_widget( 'Sape_API_Widget_RTB' );}, 1 );
-        }
-    }
-
     protected function _registerCounter()
     {
-        if ( _SAPE_USER !== '' ) {
+        if ( _BACKLINKS_USER !== '' ) {
             add_action( 'wp_footer', array( &$this, '_sape_return_counter' ), 1 );
         }
     }
@@ -192,12 +156,6 @@ class Sape_API {
     public function render_remained_links() {
         //if ( $this->_getSapeClient()->_links_page > 0 ) {
         echo do_shortcode( '[sape block=1 orientation=1]' );
-        //}
-    }
-
-    public function render_remained_article() {
-        //if ( $this->_getSapeArticles()->_links_page > 0 ) {
-        echo do_shortcode( '[sape_article]' );
         //}
     }
 
@@ -212,9 +170,6 @@ class Sape_API {
         if ( is_front_page() ) {
             add_action( 'wp_footer', array( &$this, '_sape_return_links' ), 1 );
         }
-
-        // deny edit and delete sape article posts
-        add_action('user_has_cap', array( &$this, 'deny_edit_and_delete_posts' ), 10, 3);
     }
 
     public function upgrade($upgrader_object, $options) {
@@ -226,34 +181,6 @@ class Sape_API {
                 }
             }
         }
-    }
-
-    function deny_edit_and_delete_posts($allcaps, $cap, $args) {
-        if (in_array($args[0], array('edit_post', 'delete_post'))) {
-            $postId = (int)$args[2];
-            if ((int)$postId > 0) {
-                $sape_articles_post_ids = $this->_getSapeArticles()->wp_get_post_ids();
-                if (in_array($postId, $sape_articles_post_ids)) {
-                    $allcaps[$cap[0]] = false;
-                }
-            }
-        }
-        return $allcaps;
-    }
-
-    function disable_transform_content($content) {
-        try {
-            $postId = $GLOBALS['post']->ID;
-            if ((int)$postId > 0) {
-                $sape_articles_post_ids = $this->_getSapeArticles()->wp_get_post_ids();
-                if (in_array($postId, $sape_articles_post_ids)) {
-                    remove_all_filters('the_content');
-                    $content = $GLOBALS['post']->post_content;
-                }
-            }
-        } catch (Exception $e) {}
-
-        return $content;
     }
 
     public static function activation_hook() {
@@ -272,7 +199,7 @@ class Sape_API {
         $local_path = dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'sape';
 
         $files = array(
-            $local_path . DIRECTORY_SEPARATOR . 'sape.php' => self::_getSapePath() . DIRECTORY_SEPARATOR . 'sape.php',
+            $local_path . DIRECTORY_SEPARATOR . 'backlinks.php' => self::_getSapePath() . DIRECTORY_SEPARATOR . 'backlinks.php',
             $local_path . DIRECTORY_SEPARATOR . '.htaccess' => self::_getSapePath() . DIRECTORY_SEPARATOR . '.htaccess'
         );
 
@@ -335,8 +262,8 @@ class Sape_API {
 
     private function _getSapeClient() {
         if ( $this->_sape_client === null ) {
-            include_once self::_getSapePath() . DIRECTORY_SEPARATOR . 'sape.php';
-            $this->_sape_client = new SAPE_client( $this->_sape_options );
+            include_once self::_getSapePath() . DIRECTORY_SEPARATOR . 'backlinks.php';
+            $this->_sape_client = new BACKLINKS_client( $this->_sape_options );
         }
 
         return $this->_sape_client;
@@ -349,9 +276,6 @@ class Sape_API {
     }
     public function _sape_return_counter() {
         $counterHtml = '';
-        if (get_option('sape_part_is_articles')) {
-            $counterHtml = $this->_getSapeArticles()->return_counter();
-        }
         if ($counterHtml == '') {
             $counterHtml = $this->_getSapeClient()->return_counter();
         }
@@ -360,8 +284,8 @@ class Sape_API {
 
     private function _getSapeContext() {
         if ( $this->_sape_context === null ) {
-            include_once self::_getSapePath() . DIRECTORY_SEPARATOR . 'sape.php';
-            $this->_sape_context = new SAPE_context( $this->_sape_options );
+            include_once self::_getSapePath() . DIRECTORY_SEPARATOR . 'backlinks.php';
+            $this->_sape_context = new BACKLINKS_context( $this->_sape_options );
         }
 
         return $this->_sape_context;
@@ -375,122 +299,6 @@ class Sape_API {
         }
 
         return $this->_sape_context_replace_texts[$hash];
-    }
-
-    private function _getSapeArticles() {
-        if ( $this->_sape_articles === null ) {
-            include_once self::_getSapePath() . DIRECTORY_SEPARATOR . 'sape.php';
-            $this->_sape_articles = new SAPE_articles( $this->_sape_options );
-        }
-
-        return $this->_sape_articles;
-    }
-
-    public function _sape_return_announcements( $n ) {
-        return $this->_getSapeArticles()->return_announcements( $n );
-    }
-
-    public function _sape_wp_process() {
-        $newArticles     = array();
-        $updateArticles  = array();
-        $deleteArticles  = array();
-
-        $uploadDirInfo = wp_upload_dir();
-
-        $this->_getSapeArticles()->wp_process($newArticles, $updateArticles, $deleteArticles, $uploadDirInfo['basedir']);
-
-        // Блок обработки новых статей
-        if (isset($updateArticles) && is_array($updateArticles) && count($newArticles) > 0) {
-            $addedPosts = array();
-            foreach ($newArticles as $articleId => $articleInfo) {
-                // Добавляем служебный тег
-                $args = array(
-                    'sape_article_id'  => $articleId,
-                    'post_title'       => $articleInfo['title'],
-                    'post_content'     => $articleInfo['body'],
-                    'post_status'      => 'publish'
-                );
-
-                // Защита от дублирования статей
-                global $wpdb;
-                $postInfo = $wpdb->get_row(
-                    "
-                        SELECT 
-                            id
-                        FROM 
-                            $wpdb->posts 
-                        WHERE
-                            post_name = '" . (int)$articleId . "' AND 
-                            post_status = 'publish'
-                        ORDER BY 
-                            id DESC
-                    ", 'ARRAY_A'
-                );
-
-                if (count($postInfo) > 0) {
-                    $args['post_id'] = (int)$postInfo['id'];
-                }
-                unset($postInfo);
-
-                // Создаем пост в WordPress
-                $postInfo = $this->addOrUpdatePost($args);
-                $addedPosts[$articleId] = $postInfo;
-
-                // Прописываем meta-теги
-                add_post_meta($postInfo['wp_post_id'], 'sseo_meta_title', $articleInfo['title']);
-                add_post_meta($postInfo['wp_post_id'], 'sseo_meta_keywords', $articleInfo['keywords']);
-                add_post_meta($postInfo['wp_post_id'], 'sseo_meta_description', $articleInfo['description']);
-            }
-
-            // Пушим в диспенсер УРЛы
-            $this->_getSapeArticles()->wp_push_posts($addedPosts, $uploadDirInfo['baseurl']);
-
-            // Сохраняем изменения в локальный файл
-            try {
-                $this->_getSapeArticles()->wp_save_local_db($addedPosts, 'add');
-            } catch (Exception $e) {}
-        }
-
-        // Блок обработки существующих статей
-        if (isset($updateArticles) && is_array($updateArticles) && count($updateArticles) > 0) {
-            $updatedPosts = array();
-            foreach ($updateArticles as $articleId => $articleInfo) {
-                $args = array(
-                    'sape_article_id'  => $articleId,
-                    'post_id'          => $articleInfo['wp_post_id'],
-                    'post_title'       => $articleInfo['title'],
-                    'post_content'     => $articleInfo['body'],
-                    'post_status'      => 'publish'
-                );
-
-                // Обновляем пост в WordPress
-                $postInfo = $this->addOrUpdatePost($args);
-                $updatedPosts[$articleId] = $postInfo;
-
-                // Прописываем meta-теги
-                update_post_meta($postInfo['wp_post_id'], 'sseo_meta_title', $articleInfo['title']);
-                update_post_meta($postInfo['wp_post_id'], 'sseo_meta_keywords', $articleInfo['keywords']);
-                update_post_meta($postInfo['wp_post_id'], 'sseo_meta_description', $articleInfo['description']);
-
-                // Сохраняем изменения в локальный файл
-                $this->_getSapeArticles()->wp_save_local_db($updatedPosts, 'update');
-            }
-        }
-
-        // Блок обработки удаления статей
-        if (isset($deleteArticles) && is_array($deleteArticles) && count($deleteArticles) > 0) {
-            $deletedPosts = array();
-            foreach ($deleteArticles as $articleId => $articleInfo) {
-                if (isset($articleInfo['wp_post_id']) && (int)$articleInfo['wp_post_id'] > 0) {
-                    // Удаляем пост в WordPress
-                    $this->deletePost($articleInfo['wp_post_id']);
-                    $deletedPosts[$articleId] = array('wp_post_id' => (int)$articleInfo['wp_post_id']);
-                }
-            }
-
-            // Сохраняем изменения в локальный файл
-            $this->_getSapeArticles()->wp_save_local_db($deletedPosts, 'delete');
-        }
     }
 
     public function shortcode_sape( $atts, $content = null ) {
@@ -524,23 +332,6 @@ class Sape_API {
         $text = $this->_sape_return_tizer(
             $atts['id']
         );
-
-        return ! empty( $text ) ? $text : $content;
-    }
-
-    public function shortcode_sape_article( $atts, $content = null ) {
-        $atts = shortcode_atts( array(
-                                    'count'       => null,
-                                ), $atts );
-
-        $text = $this->_sape_return_announcements(
-            $atts['count'],
-            array(
-            )
-        );
-
-        // Запускаем обработку размещения статей
-        $this->_sape_wp_process();
 
         return ! empty( $text ) ? $text : $content;
     }
@@ -608,14 +399,9 @@ class Sape_API {
         register_setting( 'sape_base', 'sape_user', 'trim' );
         register_setting( 'sape_base', 'sape_part_is_client', 'boolval' );
         register_setting( 'sape_base', 'sape_part_is_context', 'boolval' );
-        register_setting( 'sape_base', 'sape_part_is_articles', array('type'=>'boolval' , 'sanitize_callback' => array( &$this, 'change_field_article')) );
-
-        register_setting( 'sape_base', 'sape_part_is_articles_post_author', array('type'=>'intval'));
-        register_setting( 'sape_base', 'sape_part_is_articles_post_category', array('type'=>'intval'));
 
         register_setting( 'sape_base', 'sape_part_is_tizer', 'boolval' );
         register_setting( 'sape_base', 'sape_part_is_tizer_image', array('type'=>'intval', 'sanitize_callback' => array( &$this, 'change_field_tizer_image')) );
-        register_setting( 'sape_base', 'sape_part_is_rtb', 'boolval' );
         register_setting( 'sape_base', 'sape_widget_class', 'trim' );
 
         // add sections
@@ -697,47 +483,6 @@ class Sape_API {
         );
 
         add_settings_field(
-            'sape_part_is_articles', // id
-            __('Арендные статьи', 'sapeTranslate'), // title
-            array( &$this, 'render_settings_field' ), // callback
-            'page_sape', // page
-            'section__sape_parts', // section
-            array(
-                'label_for' => 'sape_part_is_articles',
-                'type'      => 'checkbox',
-                'descr'     => __('Размещение статей и анонсов для статей на сайте по моделе арендной оплаты.', 'sapeTranslate'),
-            ) // args
-        );
-
-        add_settings_field(
-            'sape_part_is_articles_post_author', // id
-            '', // title
-            array( &$this, 'render_settings_field' ), // callback
-            'page_sape', // page
-            'section__sape_parts', // section
-            array(
-                'label_for' => 'sape_part_is_articles_post_author',
-                'type'      => 'select',
-                'descr'     => __('Пользователь, от имени которого будут создаваться статьи.', 'sapeTranslate'),
-                'options' => $this-> _getArticleWpUsersOptions()
-            ) // args
-        );
-
-        add_settings_field(
-            'sape_part_is_articles_post_category', // id
-            '', // title
-            array( &$this, 'render_settings_field' ), // callback
-            'page_sape', // page
-            'section__sape_parts', // section
-            array(
-                'label_for' => 'sape_part_is_articles_post_category',
-                'type'      => 'select',
-                'descr'     => __('Рубрика, в которой будут создаваться статьи.', 'sapeTranslate'),
-                'options' => $this-> _getArticleWpСategoryOptions()
-            ) // args
-        );
-
-        add_settings_field(
             'sape_part_is_tizer', // id
             __('Ссылки-тизеры', 'sapeTranslate'), // title
             array( &$this, 'render_settings_field' ), // callback
@@ -768,21 +513,6 @@ class Sape_API {
                 'options' => $this-> _getTizerImageOptions()
             ) // args
         );
-
-        add_settings_field(
-            'sape_part_is_rtb', // id
-            __('Медийная реклама', 'sapeTranslate'), // title
-            array( &$this, 'render_settings_field' ), // callback
-            'page_sape', // page
-            'section__sape_parts', // section
-            array(
-                'label_for' => 'sape_part_is_rtb',
-                'type'      => 'checkbox',
-                'descr'     =>
-                    __('Если включен - на вашем сайте будут показываться медийные баннеры по технологии RTB, заработок по CPM модели.', 'sapeTranslate') .'<br/>'.
-                    sprintf(__('После активации будет доступен %s виджет%s для вывода RTB блоков.', 'sapeTranslate'), '<a target="_blank" href="' . admin_url( 'widgets.php' ) .'">', '</a>'),
-            ) // args
-        );
     }
 
     function change_field_tizer_image($args)
@@ -792,8 +522,8 @@ class Sape_API {
         if ($SID) {
             $file_name = $this->_getTizerImageOptions($args);
             if(isset($file_name) && !is_array($file_name) && $file_name <> '') {
-                $dir = self::_getSapePath() . DIRECTORY_SEPARATOR . 'sape.php';
-                $data = sprintf('<?php define(\'_SAPE_USER\', \'%s\');require_once(\'%s\');$sape = new SAPE_client(array(\'charset\' => \'UTF-8\'));$sape->show_image();', $SID, $dir);
+                $dir = self::_getSapePath() . DIRECTORY_SEPARATOR . 'backlinks.php';
+                $data = sprintf('<?php define(\'_BACKLINKS_USER\', \'%s\');require_once(\'%s\');$sape = new BACKLINKS_client(array(\'charset\' => \'UTF-8\'));$sape->show_image();', $SID, $dir);
                 $fileName = $_SERVER['DOCUMENT_ROOT'].'/'.$file_name;
                 if (!file_put_contents($fileName, $data)) {
                     $userData = file_get_contents($fileName);
@@ -811,68 +541,6 @@ class Sape_API {
         return $args;
     }
 
-    function change_field_article($args)
-    {
-        $SID = get_option('sape_user');
-
-        if ($SID) {
-            $dir = self::_getSapePath() . DIRECTORY_SEPARATOR . 'sape.php';
-            $data = sprintf('<?php define(\'_SAPE_USER\', \'%s\');require_once(\'%s\');$sape = new SAPE_articles();echo $sape->process_request();', $SID, $dir);
-            $fileName = $_SERVER['DOCUMENT_ROOT'].'/'.$SID.'.php';
-            if (!file_put_contents($fileName, $data)) {
-                $userData = file_get_contents($fileName);
-                if ($userData !== $data) {
-                    $message = 'Sape: ' . sprintf( __('папка %s не доступна для записи.', 'sapeTranslate'), '<i>`' . $_SERVER['DOCUMENT_ROOT'] . '`</i>');
-                    $message .= '<p>' .sprintf(__('Вы можете создать файл %s вручную с содержимым:', 'sapeTranslate'), '<i>`' . $fileName . '`</i>') .'</p>';
-                    $message .= '<p>' . htmlentities($data) . '</p>';
-                    self::chmod_wrong_on_save_options($message);
-                }
-            }
-        }
-
-        return $args;
-    }
-
-    function addOrUpdatePost($args)
-    {
-        // Создаем массив данных новой записи
-        $post_data = array(
-            'post_title'    => wp_strip_all_tags( $args['post_title'] ),
-            'post_content'  => $args['post_content'],
-            'post_status'   => $args['post_status'],
-            'post_author'   => get_option('sape_part_is_articles_post_author'),
-            'post_category' => array(get_option('sape_part_is_articles_post_category')),
-            'post_name'     => (int)$args['sape_article_id']
-        );
-
-        if (isset($args['post_id']) && (int)$args['post_id'] > 0) {
-            $post_data['ID'] = (int)$args['post_id'];
-        }
-
-        // Вставляем или обновляем запись в БД
-        $post_id = wp_insert_post( $post_data );
-
-        // Получаем URL поста
-        $post_url = get_permalink( $post_id );
-
-        $result = array(
-            'wp_post_id'          => $post_id,
-            'wp_post_url'         => $post_url,
-            'wp_post_title'       => wp_strip_all_tags( $args['post_title'] ),
-            'wp_post_content'     => $args['post_content'],
-            'wp_post_keywords'    => $args['post_keywords'],
-            'wp_post_description' => $args['post_description'],
-            'wp_post_status'      => $args['post_status']
-        );
-
-        return $result;
-    }
-
-    function deletePost($post_id)
-    {
-        return wp_delete_post( $post_id );
-    }
-
     protected function _getTizerImageOptions($id = null)
     {
         if(isset($id)) {
@@ -880,55 +548,6 @@ class Sape_API {
             return isset($data[$id]) ? $data[$id] : null;
         }
         return array('img.php', 'image.php', 'photo.php', 'wp-img.php', 'wp-image.php', 'wp-photo.php');
-    }
-
-    protected function _getArticleWpUsersOptions($id = null)
-    {
-        if($id){
-            $data = $this->_getArticleWpUsersOptions();
-            return isset($data[$id]) ? $data[$id] : null;
-        }
-
-        $wpUsers = get_users();
-        $result = array();
-
-        /* @var WP_User $wpUser */
-        foreach ($wpUsers as $wpUser) {
-            $result[$wpUser->ID] = $wpUser->display_name;
-        }
-
-        return $result;
-    }
-
-    protected function _getArticleWpСategoryOptions($id = null)
-    {
-        if($id){
-            $data = $this->_getArticleWpСategoryOptions();
-            return isset($data[$id]) ? $data[$id] : null;
-        }
-
-        $wpСategories = get_categories( array(
-                                            'taxonomy'     => 'category',
-                                            'type'         => 'post',
-                                            'child_of'     => 0,
-                                            'parent'       => '',
-                                            'orderby'      => 'name',
-                                            'order'        => 'ASC',
-                                            'hide_empty'   => 0,
-                                            'hierarchical' => 1,
-                                            'exclude'      => '',
-                                            'include'      => '',
-                                            'number'       => 0,
-                                            'pad_counts'   => false
-                                        ) );
-
-        $result = array();
-
-        foreach ($wpСategories as $wpСategory) {
-            $result[$wpСategory->term_id] = $wpСategory->cat_name;
-        }
-
-        return $result;
     }
 
     public function render_settings_field( $atts ) {
@@ -1097,87 +716,6 @@ class Sape_API_Widget_Links extends WP_Widget {
     }
 }
 
-class Sape_API_Widget_Articles extends WP_Widget {
-    public function __construct() {
-        parent::__construct(
-            'sape_article',
-            'Sape Articles',
-            array(
-                'description' => __('Вывод анонсов статрей Sape на сайте. Вы можете использовать несколько виджетов, чтобы отобразить анонсы в нескольких местах.', 'sapeTranslate'),
-                'classname'   => '',
-            )
-        );
-    }
-
-    public function widget( $args, $instance ) {
-        $o_count       = $instance['count'] ? ' count=' . $instance['count'] : '';
-
-        $shortcode = "[sape_article{$o_count}]{$instance['content']}[/sape_article]";
-
-        $text = do_shortcode( $shortcode );
-
-        if ( $text === '' || $text === $shortcode ) {
-            $text = $instance['content'];
-        }
-
-        if ( ! empty( $text ) ) {
-            echo $args['before_widget'];
-
-            if ( ! empty( $instance['title'] ) ) {
-                echo $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'];
-            }
-
-            echo $text;
-
-            echo $args['after_widget'];
-        }
-    }
-
-    public function form( $instance ) {
-        $instance = wp_parse_args(
-            (array) $instance,
-            array( 'title' => '', 'count' => '' )
-        );
-        ?>
-
-      <p>
-        <label for="<?php echo $this->get_field_id( 'title' ); ?>">
-            <?php _e( 'Заглавие:', 'sapeTranslate'); ?>
-        </label>
-        <input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>"
-               name="<?php echo $this->get_field_name( 'title' ); ?>"
-               type="text"
-               value="<?php echo esc_attr( $instance['title'] ); ?>">
-      </p>
-
-      <p>
-        <label for="<?php echo $this->get_field_id( 'count' ); ?>">
-            <?php _e('Количество анонсов:', 'sapeTranslate'); ?>
-        </label>
-        <input class="widefat" id="<?php echo $this->get_field_id( 'count' ); ?>"
-               name="<?php echo $this->get_field_name( 'count' ); ?>"
-               type="number"
-               value="<?php echo esc_attr( $instance['count'] ); ?>">
-      </p>
-
-      <p>
-        <label for="<?php echo $this->get_field_id( 'content' ); ?>">
-            <?php _e('Альтернативный текст:', 'sapeTranslate'); ?>
-        </label>
-        <textarea class="widefat" id="<?php echo $this->get_field_id( 'content' ); ?>"
-                  name="<?php echo $this->get_field_name( 'content' ); ?>"
-        ><?php echo esc_attr( $instance['content'] ); ?></textarea>
-      </p>
-
-        <?php
-    }
-
-    public function update( $new_instance, $old_instance ) {
-        $new_instance['count']       = (int) $new_instance['count'];
-        return $new_instance;
-    }
-}
-
 class Sape_API_Widget_Tizer extends WP_Widget {
     public function __construct() {
         parent::__construct(
@@ -1249,72 +787,6 @@ class Sape_API_Widget_Tizer extends WP_Widget {
                   name="<?php echo $this->get_field_name( 'content' ); ?>"
         ><?php echo esc_attr( $instance['content'] ); ?></textarea>
       </p>
-
-        <?php
-    }
-
-    public function update( $new_instance, $old_instance ) {
-        $new_instance['count']       = (int) $new_instance['count'];
-        return $new_instance;
-    }
-}
-
-class Sape_API_Widget_RTB extends WP_Widget {
-    public function __construct() {
-        parent::__construct(
-            'sape_rtb',
-            'Sape RTB',
-            array(
-                'description' => __('Вывод Медийной рекламы на сайте. Вы можете использовать несколько виджетов, чтобы отобразить в нескольких местах.', 'sapeTranslate'),
-                'classname'   => 'advert_rtb',
-            )
-        );
-    }
-
-    public function widget( $args, $instance ) {
-
-        $text = $instance['html'];
-
-        if ( ! empty( $text ) ) {
-            echo $args['before_widget'];
-
-            if ( ! empty( $instance['title'] ) ) {
-                echo $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'];
-            }
-
-            echo $text;
-
-            echo $args['after_widget'];
-        }
-    }
-
-    public function form( $instance ) {
-        $instance = wp_parse_args(
-            (array) $instance,
-            array( 'title' => '', 'count' => '' )
-        );
-        ?>
-
-      <p>
-        <label for="<?php echo $this->get_field_id( 'title' ); ?>">
-            <?php _e( 'Заглавие:', 'sapeTranslate'); ?>
-        </label>
-        <input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>"
-               name="<?php echo $this->get_field_name( 'title' ); ?>"
-               type="text"
-               value="<?php echo esc_attr( $instance['title'] ); ?>">
-      </p>
-
-      <p>
-        <label for="<?php echo $this->get_field_id( 'html' ); ?>">
-            <?php _e( 'Код RTB блока', 'sapeTranslate'); ?>
-        </label>
-        <textarea class="widefat" id="<?php echo $this->get_field_id( 'html' ); ?>"
-                  name="<?php echo $this->get_field_name( 'html' ); ?>"
-                  rows="3"
-        ><?php echo esc_attr( $instance['html'] ); ?></textarea>
-      </p>
-
 
         <?php
     }
